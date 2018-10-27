@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Profile Viewer</title>
+	<link rel="stylesheet" type="text/css" href="/styles/main.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--  -->
+</head>
+<body>
+	<div data-co="loading-block" class="layout-center-column">
+		<div class="layout-center-column_main">
+			<p>Loading...</p>
+		</div>
+	</div>
+	<div data-co="login-block" class="layout-center-column" style="display: none;">
+		<div class="layout-center-column_main">
+			<p>You are not logged in.</p>
+			<button data-co="login-btn" class="dwc_btn">login</button>
+		</div>
+	</div>
+	<div data-co="logout-block" style="display: none;"> 
+		<div class="layout-line">
+			<div class="layout-line_cell-full ta-r">
+				<span class="article-5">You are logged in as <span data-co="user-label"></span>.</span>
+			</div>
+			<div class="layout-line_cell-auto">
+				 <button data-co="logout-btn" class="dwc_btn">Log out</button>
+			</div>
+		</div>
+
+
+		<h1>Profile viewer</h1>
+
+
+		<form class="layout-line" data-co="profile-select-form" class="profile-select-form">
+  			<div class="layout-line_cell-auto">
+  				<label for="profile" class="article-5">Profile:</label>
+  				<input id="profile" data-co="profile-field" class="profile-select-form_login-input">
+  			</div>
+  			<button data-co="view-btn" class="layout-line_cell-auto dwc_btn" type="submit">View</button>	
+		</form>
+		
+		
+		<dl data-co="viewer">
+			<dt>Full name</dt>
+			<dd data-co="full-name-label"></dd>
+			<dt>Friends</dt>
+    		<dd>
+      			<ul data-co="friends"></ul>
+   			</dd>
+		</dl>
+	</div>
+	<script src="/libs/jquery.js"></script>
+	<script src="/libs/solid-auth-client.bundle.js"></script>
+	<script src="/libs/rdflib.min.js"></script>
+	<script src="/scripts/main.js" type="module"></script>
+</body>
+</html>

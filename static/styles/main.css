@@ -1,0 +1,68 @@
+body {
+	margin: 0;
+	font: 13px/15px Arial;
+}
+
+
+/* buttons */
+.dwc_btn{
+	display: inline-block;
+	vertical-align: middle;
+	font-size: 13px;
+	line-height: 20px;
+	cursor: pointer;
+	border: none;
+	padding: 5px 12px;
+	transition: color .2s ease, background-color .2s ease;
+	background-color: #2f3844;
+	background-image: linear-gradient(to bottom,rgba(246,246,246,.1)0%,rgba(30,40,53,0)66%);
+	color: #fff;
+	border-radius: 4px;
+}
+.dwc_btn:hover,
+.dwc_btn:focus{
+	background-color: #1e2835;
+}
+.dwc_btn:hover,
+.dwc_btn:active{
+	outline:none;
+}
+.dwc_btn.__predefined{
+	background-color: #fcc939;
+	color: #1e2835;	
+}
+.dwc_btn.__predefined:hover,
+.dwc_btn.__predefined:focus{
+	background-color: #fdd76b;
+	color: #404853;
+}
+
+
+
+.layout-center-column { text-align: center; }
+.layout-center-column > .layout-center-column_main { display: inline-block; } 
+
+
+
+.layout-line { display: flex; }
+.layout-line_cell-auto { flex: 0 0 auto; }
+.layout-line_cell-full { flex: 1 1 auto; }
+
+
+
+.ta-r { text-align: right; }
+
+
+
+.article-5 { 
+	font-size: 13px; 
+	line-height: 30px;  
+}
+
+
+
+.profile-select-form {}
+.profile-select-form_login-input { 
+	margin: 0 10px; 
+	width: 320px;
+}
