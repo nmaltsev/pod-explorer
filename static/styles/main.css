@@ -1,6 +1,12 @@
 body {
 	margin: 0;
 	font: 13px/15px Arial;
+	color: #333;
+}
+
+input {
+	font-size: inherit;
+	line-height: inherit;
 }
 
 
@@ -61,8 +67,69 @@ body {
 
 
 
-.profile-select-form {}
+.profile-select-form {
+	font-size: 13px;
+	line-height: 20px;
+}
 .profile-select-form_login-input { 
 	margin: 0 10px; 
 	width: 320px;
+	padding: 3px 10px;
+
+	color: #009cff;
+	color: #333;
+	border: 1px solid;
+	border-radius: 3px;
+	background: #fff;
+}
+
+
+.basebtn {
+	display: inline-block;
+	vertical-align: middle;
+	cursor: pointer;
+	font-size: 13px;
+	line-height: 20px;
+	font-weight: 400;
+	box-sizing: border-box;
+	padding: 3px 20px;
+}
+.basebtn.__invert-blue {
+	color: #009cff;
+	border: 1px solid;
+	border-radius: 3px;
+	background: #fff;
+	box-shadow: 0 2px 2px 0 rgba(0,0,0,0.08);
+}
+.basebtn.__invert-blue:hover {
+	color: #fff;
+	background: #009cff;
+	border: none
+}
+.basebtn.__invert-blue:active {
+	background: #11adff
+}
+
+
+
+
+
+
+
+dt {
+  font-weight: bold;
+  clear: left;
+  float: left;
+}
+dt:after {
+  content: ': ';
+}
+
+a {
+  color: #7c4dff;
+  border-bottom: 1px solid;
+  cursor: pointer;
+}
+a:hover {
+  color: #9b79fc;
 }
