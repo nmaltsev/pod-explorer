@@ -1,6 +1,6 @@
 import * as UITools from './common.js';
 
-const popupUri = '/pages/popup.html';
+const popupUri = 'pages/popup.html';
 const FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/');
 
 const CONTROLS = UITools.findNodes();
