@@ -66,6 +66,10 @@ input {
 }
 
 
+.profile-view {
+	margin: 0 10px;
+}
+
 
 .profile-select-form {
 	font-size: 13px;

@@ -29,27 +29,28 @@
 			</div>
 		</div>
 
+		<main class="profile-view">
+			<h1>Profile viewer</h1>
 
-		<h1>Profile viewer</h1>
 
-
-		<form class="layout-line profile-select-form" data-co="profile-select-form">
-  			<div class="layout-line_cell-auto">
-  				<label for="profile" class="article-5">Profile:</label>
-  				<input id="profile" data-co="profile-field" class="profile-select-form_login-input">
-  			</div>
-  			<button data-co="view-btn" class="layout-line_cell-auto basebtn __invert-blue" type="submit">View</button>	
-		</form>
-		
-		
-		<dl data-co="viewer">
-			<dt>Full name</dt>
-			<dd data-co="full-name-label"></dd>
-			<dt>Friends</dt>
-    		<dd>
-      			<ul data-co="friends"></ul>
-   			</dd>
-		</dl>
+			<form class="layout-line profile-select-form" data-co="profile-select-form">
+	  			<div class="layout-line_cell-auto">
+	  				<label for="profile" class="article-5">Profile:</label>
+	  				<input id="profile" data-co="profile-field" class="profile-select-form_login-input">
+	  			</div>
+	  			<button data-co="view-btn" class="layout-line_cell-auto basebtn __invert-blue" type="submit">View</button>	
+			</form>
+			
+			
+			<dl data-co="viewer">
+				<dt>Full name</dt>
+				<dd data-co="full-name-label"></dd>
+				<dt>Friends</dt>
+	    		<dd>
+	      			<ul data-co="friends"></ul>
+	   			</dd>
+			</dl>
+		</main>
 	</div>
 	<script src="/libs/solid-auth-client.bundle.js"></script>
 	<script src="/libs/rdflib.min.js"></script>

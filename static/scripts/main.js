@@ -38,6 +38,8 @@ async function loadProfile() {
 	const fullName = store.any($rdf.sym(MODEL.id), FOAF('name'));
   	const friends = store.each($rdf.sym(MODEL.id), FOAF('knows'));
 
+  	console.log('loadProfile: %s name: %s', MODEL.id, FOAF('name'));
+
   	CONTROLS.fullNameLabel.textContent = fullName ? fullName.value : '';
   	UITools.emptyNode(CONTROLS.friends);
   
@@ -50,7 +52,10 @@ async function loadProfile() {
 
 		$a.textContent = fullName ? fullName.value : friend.value;
 		$a.onclick = function() {
+			MODEL.id = friend.value;
+			// TODO move in model change handler
 			CONTROLS.profileField.value = friend.value;
+
 			loadProfile();
 		};
 		$li.appendChild($a);
