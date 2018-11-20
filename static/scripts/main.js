@@ -16,95 +16,70 @@ const Model = UITools.$decorate({
 		let store = $rdf.graph();
 		// Fetcher instance will store all the collected data!
 		this.fetcher = new $rdf.Fetcher(store);
-		this.foaf = $rdf.Namespace('http://xmlns.com/foaf/0.1/');
+		this.namespace = {
+			foaf: $rdf.Namespace('http://xmlns.com/foaf/0.1/'),
+		};
 	}
 	async populate(webId) {
 		await this.fetcher.load(webId);
 	}
 	getNameOf(webId) {
-		const nameInstance = this.fetcher.store.any($rdf.sym(webId), this.foaf('name'));
+		const nameInstance = this.fetcher.store.any($rdf.sym(webId), this.namespace.foaf('name'));
 		return nameInstance.value;
 	}
 	getFriendsOf(webId) {
-		return this.fetcher.store.each($rdf.sym(webId), this.foaf('knows'));
+		return this.fetcher.store.each($rdf.sym(webId), this.namespace.foaf('knows'));
 	}
 	
-	// async fetchPublicTypeIndex () {
-	// 	const BOOKMARK = $rdf.Namespace('http://www.w3.org/2002/01/bookmark#');
-	// 	const SOLID = $rdf.Namespace('http://www.w3.org/ns/solid/terms#');
-		
-	// 	const store = $rdf.graph();
-	// 	const fetcher = new $rdf.Fetcher(store);
-	// 	console.dir([
-	// 		$rdf.sym(this.webId), 
-	// 		SOLID('publicTypeIndex'), 
-	// 		null, 
-	// 		$rdf.sym(this.webId.split('#')[0])
-	// 	])
-
-	// 	this.publicTypeIndex = store.any(
-	// 		$rdf.sym(this.webId), 
-	// 		SOLID('publicTypeIndex'), 
-	// 		null, 
-	// 		$rdf.sym(this.webId.split('#')[0]));
-      	
- //      	// Load the person's data into the store
- //      	await fetcher.load(this.publicTypeIndex);
- //      	console.log('this.publicTypeIndex ready')
- //      	console.dir(this.publicTypeIndex);
- //      	return;
- //      // Display their details
- //      template.profile.bookmarkTypeRegistration = store.any(null, SOLID("forClass"), BOOKMARK("Bookmark"))
- //      console.log("bookmarkTypeRegistration", template.profile.bookmarkTypeRegistration)
- //      if (template.profile.bookmarkTypeRegistration && template.profile.bookmarkTypeRegistration.value) {
- //        template.profile.bookmarkInstance = store.any(template.profile.bookmarkTypeRegistration, SOLID("instance"));
- //        template.profile.bookmarkInstance = template.profile.bookmarkInstance.value
- //        fetchBookmarks()
- //      } else {
- //        console.log("no bookmark files, creating")
- //        const query = `INSERT DATA {
- //            <#Bookmark> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
- //              <http://www.w3.org/ns/solid/terms#forClass> <http://www.w3.org/2002/01/bookmark#Bookmark> ;
- //              <http://www.w3.org/ns/solid/terms#instance> </public/bookmarks.ttl> .
- //              <> <http://purl.org/dc/terms/references> <#Bookmark> .
- //            }`
- //        // Send a PATCH request to update the source
- //        console.log("sending PATCH query to",template.profile.publicTypeIndex.value ,query)
- //        solid.auth.fetch(template.profile.publicTypeIndex.value, {
- //          method: 'PATCH',
- //          headers: { 'Content-Type': 'application/sparql-update' },
- //          body: query,
- //          credentials: 'include',
- //        }).then((ret) => {
- //          console.log("finished", ret)
- //        })
- //      }
- //      render()
-	// }
-	/*async fetchData () {
-		
-
-
-		const store = $rdf.graph();
+	async fetchPublicTypeIndex () {
+		const BOOKMARK = $rdf.Namespace('http://www.w3.org/2002/01/bookmark#');
 		const SOLID = $rdf.Namespace('http://www.w3.org/ns/solid/terms#');
-
-		this.publicTypeIndex = store.any(
+		
+		this.publicTypeIndex = this.fetcher.store.any(
 			$rdf.sym(this.webId), 
 			SOLID('publicTypeIndex'), 
 			null, 
-			$rdf.sym(this.webId.split('#')[0])
-		);
-		
-		const BOOKMARK = $rdf.Namespace('https://www.w3.org/2002/01/bookmark#');
-      	
-		console.log('Call fetchData %s', this.webId)
+			$rdf.sym(this.webId.split('#')[0]));
+
+		console.log('this.publicTypeIndex %s', this.webId);
 		console.dir(this.publicTypeIndex);
-		const fetcher = new $rdf.Fetcher(store);
-      // Load the person's data into the store
-      await fetcher.load(template.profile.publicTypeIndex);
 
+		
+		// Load the person's data into the store
+		await this.fetcher.load(this.publicTypeIndex);
 
-
+		// Display their details
+		this.bookmarkTypeRegistration = this.fetcher.store.any(null, SOLID('forClass'), BOOKMARK('Bookmark'))
+ 
+ 		if (this.bookmarkTypeRegistration && this.bookmarkTypeRegistration.value) {
+			this.bookmarkInstance = this.fetcher.store.any(this.bookmarkTypeRegistration, SOLID('instance'));
+			// Refactor
+			// this.bookmarkInstance = this.bookmarkInstance.value
+			// TODO
+			// fetchBookmarks()
+		} else {
+        	console.log('no bookmark files, creating')
+        	const query = `INSERT DATA {
+            <#Bookmark> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
+              <http://www.w3.org/ns/solid/terms#forClass> <http://www.w3.org/2002/01/bookmark#Bookmark> ;
+              <http://www.w3.org/ns/solid/terms#instance> </public/bookmarks.ttl> .
+              <> <http://purl.org/dc/terms/references> <#Bookmark> .
+            }`
+			// Send a PATCH request to update the source
+			console.log('sending PATCH query to', this.publicTypeIndex.value ,query)
+			solid.auth.fetch(this.publicTypeIndex.value, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/sparql-update' },
+				body: query,
+				credentials: 'include',
+			}).then((ret) => {
+				console.log("finished", ret)
+			})
+		}
+		// TODO
+ //      render()
+	}
+	async fetchData () {
       	const fetcher = new $rdf.Fetcher(store);
       	const RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
       	const DC = $rdf.Namespace('http://purl.org/dc/terms/')
@@ -153,7 +128,7 @@ const Model = UITools.$decorate({
       		// console.log()
       	}
       	// render()		
-	}*/
+	}
 });
 
 
@@ -177,6 +152,7 @@ UITools.bindEvents(CONTROLS, {
 });
 
 // Model event listeners
+// When viewedWebId is changed we download and render all related information
 MODEL.on('change:viewedWebId', async function(webId){
 	await MODEL.populate(webId);
 
@@ -234,7 +210,7 @@ window.model = MODEL;
 
 
 // Update components to match the user's login status
-solid.auth.trackSession(session => {
+solid.auth.trackSession(async (session) => {
 	const loggedIn_b = !!session;
 	
 	UITools.toggle(CONTROLS.logoutBlock, loggedIn_b);
@@ -244,9 +220,11 @@ solid.auth.trackSession(session => {
 	if (loggedIn_b) {
 		MODEL.viewedWebId = session.webId;
 		MODEL.webId = session.webId;
-		MODEL.populate(MODEL.webId);
+		await MODEL.populate(MODEL.webId);
 
 		CONTROLS.userLabel.textContent = session.webId;
+
+		MODEL.fetchPublicTypeIndex();
 	} else {
 		CONTROLS.userLabel.textContent = '';		
 	}
