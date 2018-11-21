@@ -65,7 +65,7 @@ const Model = UITools.$decorateWatchers([
 			// Refactor
 			// this.bookmarkInstance = this.bookmarkInstance.value
 			// TODO
-			this.fetchBookmarks();
+			await this.fetchBookmarks();
 		} else {
         	console.log('no bookmark files, creating')
         	const query = `INSERT DATA {
@@ -83,89 +83,71 @@ const Model = UITools.$decorateWatchers([
 				credentials: 'include',
 			}).then((ret) => {
 				console.log("finished", ret)
-			})
+			});
+
+			this.bookmarks = [];
 		}
-		// TODO
- //      render()
- 		this.bookmarks = [];
 	}
 	async fetchBookmarks () {
-      	// Load the person's data into the store
-      	await this.fetcher.load(this.publicTypeIndex);
-      	// Display their details
-      	let bookmarkTypeRegistration = this.fetcher.store.any(
-      		null, 
-      		this.namespace.solid('forClass'), 
-      		this.namespace.bookmark('Bookmark')
-      	);
-      	
-      	console.log("bookmarkTypeRegistration", bookmarkTypeRegistration)
-      	console.dir(this);
+		let bookmarkInstance = this.fetcher.store.any(
+			this.bookmarkTypeRegistration, 
+			this.namespace.solid('instance')
+		);
+		// Load the person's data into the store
 
-      	if (bookmarkTypeRegistration && bookmarkTypeRegistration.value) {
-        	let bookmarkInstance = this.fetcher.store.any(
-        		bookmarkTypeRegistration, 
-        		this.namespace.solid('instance')
-        	).value;
-	      	// Load the person's data into the store
-	      	console.log("bookmarkInstance", this.bookmarkInstance)
-	      	console.dir(this)
-      	
-      		await this.fetcher.load(this.bookmarkInstance.value);
-      		// Display their details
-      		const bookmarksInstance = this.fetcher.store.statementsMatching(
-      			null, 
-      			this.namespace.rdf('type'), 
-      			this.namespace.bookmark('Bookmark')
-      		);
-      		console.log("Bookmarks", bookmarksInstance);
-      	
-	      	if (bookmarksInstance && bookmarksInstance.length) {
-	        	let bookmarks = []
-	        	// template.bookmarks = []
-	        	for (var i = 0; i < bookmarksInstance.length; i++) {
-		          	let subject = bookmarksInstance[i].subject;
+		try {
+			await this.fetcher.load(this.bookmarkInstance/*.value*/);	
+		} catch (e) {
+			console.warn('Troubles in bookmark downloading')
+			console.dir(e);
 
-		          	let title = this.tetcher.store.any(subject, this.namespace.dc('title'))
-		          	let created = this.tetcher.store.any(subject, this.namespace.dc('created'))
-		          	let recall = this.tetcher.store.any(subject, this.namespace.bookmark('recall'))
-	          		
-	          		if (subject && recall && created && title) {
-			            bookmarks.push({
-			              subject: subject.value,
-			              recall: recall.value,
-			              created: created.value,
-			              title: title.value
-			            });
-	          		}
-	          		console.log("bookmark " + i, bookmarksInstance[i])
-	        	}
+			await solid.auth.fetch(template.profile.bookmarkInstance, {
+				method : "PATCH",
+				headers : {"content-type" : "application/sparql-update"},
+				body : ""
+			})
+		}
+  		// Display their details
+		const bookmarksInstance = this.fetcher.store.statementsMatching(
+			null, 
+			this.namespace.rdf('type'), 
+			this.namespace.bookmark('Bookmark')
+		);
 
-	        	this.bookmarks = bookmarks;
-	        	
-	        	console.log("template.bookmarks", this.bookmarks);
-	        	// render()
-	      	}
-      		// console.log()
-      	}
-      	// render()		
-      	this.bookmarks = [];
+		if (bookmarksInstance && bookmarksInstance.length) {
+			let bookmarks = []
+			// template.bookmarks = []
+			for (var i = 0; i < bookmarksInstance.length; i++) {
+				let subject = bookmarksInstance[i].subject;
+
+				let title = this.fetcher.store.any(subject, this.namespace.dc('title'))
+				let created = this.fetcher.store.any(subject, this.namespace.dc('created'))
+				let recall = this.fetcher.store.any(subject, this.namespace.bookmark('recall'))
+
+				if (subject && recall && created && title) {
+					bookmarks.push({
+						subject: subject.value,
+						recall: recall.value,
+						created: created.value,
+						title: title.value
+					});
+				}
+				console.log("bookmark " + i, bookmarksInstance[i])
+			}
+
+			this.bookmarks = bookmarks;
+		}
 	}
 
 	async sendReview(id_s, uri_s, title_s) {
-		// document.getElementById('modal').classList.remove('is-active')
-		// let id = "#" + Math.random()
-		// let uri = document.getElementById('uri').value
-		// let title = document.getElementById('title').value
-
 		let source = this.bookmarkInstance.value;
 		let date_s = new Date().toISOString();
 		const query = `INSERT DATA {
-			<${id_s}> a <https://www.w3.org/2002/01/bookmark#Bookmark> ;
+			<${id_s}> a <http://www.w3.org/2002/01/bookmark#Bookmark> ;
 			<http://purl.org/dc/terms/title>   """${title_s}""" ;
 			<http://xmlns.com/foaf/0.1/maker>   <${this.webId}> ;
 			<http://purl.org/dc/terms/created>  "${date_s}"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-			<https://www.w3.org/2002/01/bookmark#recall> <${uri_s}> .
+			<http://www.w3.org/2002/01/bookmark#recall> <${uri_s}> .
 		}`;
 		// Send a PATCH request to update the source
 		solid.auth.fetch(source, {

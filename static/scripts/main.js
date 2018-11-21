@@ -71,6 +71,22 @@ MODEL.on('change:bookmarks', async function(model, bookmarks){
 	console.log('New Bookmarks');
 	console.dir(bookmarks);
 	// TODO render bookmarks
+	UITools.emptyNode(CONTROLS.bookmarkList);
+	
+	var $a, $li;
+	// TODO create document fragment
+	for (var i = 0; i < bookmarks.length; i++) {
+		$a = UITools.cr('a');
+		$li = UITools.cr('li');
+		$a.textContent = bookmarks[i].title;
+		$a.setAttribute('href', bookmarks[i].recall);
+		$a.setAttribute('target', '_blank');
+
+		$li.appendChild($a);
+		CONTROLS.bookmarkList.appendChild($li);	
+	}	
+
+	
 });
 MODEL.on('bookmarkSended', function(model) {
 	console.log('Bookmark sended');
