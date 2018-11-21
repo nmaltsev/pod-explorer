@@ -129,4 +129,3 @@ solid.auth.trackSession(async (session) => {
 		CONTROLS.userLabel.textContent = '';		
 	}
 });
-

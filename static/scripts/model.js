@@ -62,9 +62,7 @@ const Model = UITools.$decorateWatchers([
 				this.bookmarkTypeRegistration, 
 				this.namespace.solid('instance')
 			);
-			// Refactor
-			// this.bookmarkInstance = this.bookmarkInstance.value
-			// TODO
+
 			await this.fetchBookmarks();
 		} else {
         	console.log('no bookmark files, creating')
@@ -96,16 +94,13 @@ const Model = UITools.$decorateWatchers([
 		// Load the person's data into the store
 
 		try {
-			await this.fetcher.load(this.bookmarkInstance/*.value*/);	
+			await this.fetcher.load(this.bookmarkInstance);	
 		} catch (e) {
-			console.warn('Troubles in bookmark downloading')
-			console.dir(e);
-
 			await solid.auth.fetch(template.profile.bookmarkInstance, {
-				method : "PATCH",
-				headers : {"content-type" : "application/sparql-update"},
-				body : ""
-			})
+				method : 'PATCH',
+				headers : {'content-type' : 'application/sparql-update'},
+				body : ''
+			});
 		}
   		// Display their details
 		const bookmarksInstance = this.fetcher.store.statementsMatching(
@@ -116,7 +111,7 @@ const Model = UITools.$decorateWatchers([
 
 		if (bookmarksInstance && bookmarksInstance.length) {
 			let bookmarks = []
-			// template.bookmarks = []
+
 			for (var i = 0; i < bookmarksInstance.length; i++) {
 				let subject = bookmarksInstance[i].subject;
 
@@ -158,7 +153,7 @@ const Model = UITools.$decorateWatchers([
 		}).then((ret) => {
 			console.log("finished", ret)
 			// location.reload()
-			this.trigger('bookmarkSended', this)
+			this.trigger('bookmarkSended', this);
 		}).catch(err => {
 			console.log("error updating", source, err)
 		});
