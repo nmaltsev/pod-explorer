@@ -122,8 +122,8 @@ input {
 
 dt {
   font-weight: bold;
-  clear: left;
-  float: left;
+  /*clear: left;
+  float: left;*/
 }
 dt:after {
   content: ': ';

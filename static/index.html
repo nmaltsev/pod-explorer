@@ -32,7 +32,6 @@
 		<main class="profile-view">
 			<h1>Profile viewer</h1>
 
-
 			<form class="layout-line profile-select-form" data-co="profile-select-form">
 	  			<div class="layout-line_cell-auto">
 	  				<label for="profile" class="article-5">Profile:</label>
@@ -41,16 +40,31 @@
 	  			<button data-co="view-btn" class="layout-line_cell-auto basebtn __invert-blue" type="submit">View</button>	
 			</form>
 			
+				<dl data-co="viewer">
+					<dt>Full name</dt>
+					<dd data-co="full-name-label"></dd>
+					<dt>Friends</dt>
+		    		<dd>
+		      			<ul data-co="friends"></ul>
+		   			</dd>
+				</dl>
 			
-			<dl data-co="viewer">
-				<dt>Full name</dt>
-				<dd data-co="full-name-label"></dd>
-				<dt>Friends</dt>
-	    		<dd>
-	      			<ul data-co="friends"></ul>
-	   			</dd>
-			</dl>
 		</main>
+
+		<form data-co="bookmark-form">
+			<label>
+				<div>Title:</div>
+				<input type="text" data-co="bookmark-form-title-field" required/>
+			</label>
+			<label>
+				<div>Url:</div>
+				<input type="text" data-co="bookmark-form-url-field" required/>
+			</label>
+			<div>
+				<button type="submit">Submit</button>
+				<button type="reset">Reset</button>
+			</div>
+		</form>
 	</div>
 	<script src="libs/solid-auth-client.bundle.js"></script>
 	<script src="libs/rdflib.min.js"></script>

@@ -1,135 +1,10 @@
 import * as UITools from './common.js';
-
+import {Model} from './model.js';
 
 const popupUri = '/pages/popup.html';
 
 
 const CONTROLS = UITools.findNodes();
-
-// Model Class
-const Model = UITools.$decorate({
-	'_viewedWebId': 'viewedWebId',	// Selected user
-	'_webId': 'webId', // Current authorized user
-}, class Model extends UITools.Events {
-	constructor (){
-		super();
-		let store = $rdf.graph();
-		// Fetcher instance will store all the collected data!
-		this.fetcher = new $rdf.Fetcher(store);
-		this.namespace = {
-			foaf: $rdf.Namespace('http://xmlns.com/foaf/0.1/'),
-		};
-	}
-	async populate(webId) {
-		await this.fetcher.load(webId);
-	}
-	getNameOf(webId) {
-		const nameInstance = this.fetcher.store.any($rdf.sym(webId), this.namespace.foaf('name'));
-		return nameInstance.value;
-	}
-	getFriendsOf(webId) {
-		return this.fetcher.store.each($rdf.sym(webId), this.namespace.foaf('knows'));
-	}
-	
-	async fetchPublicTypeIndex () {
-		const BOOKMARK = $rdf.Namespace('http://www.w3.org/2002/01/bookmark#');
-		const SOLID = $rdf.Namespace('http://www.w3.org/ns/solid/terms#');
-		
-		this.publicTypeIndex = this.fetcher.store.any(
-			$rdf.sym(this.webId), 
-			SOLID('publicTypeIndex'), 
-			null, 
-			$rdf.sym(this.webId.split('#')[0]));
-
-		console.log('this.publicTypeIndex %s', this.webId);
-		console.dir(this.publicTypeIndex);
-
-		
-		// Load the person's data into the store
-		await this.fetcher.load(this.publicTypeIndex);
-
-		// Display their details
-		this.bookmarkTypeRegistration = this.fetcher.store.any(null, SOLID('forClass'), BOOKMARK('Bookmark'))
- 
- 		if (this.bookmarkTypeRegistration && this.bookmarkTypeRegistration.value) {
-			this.bookmarkInstance = this.fetcher.store.any(this.bookmarkTypeRegistration, SOLID('instance'));
-			// Refactor
-			// this.bookmarkInstance = this.bookmarkInstance.value
-			// TODO
-			// fetchBookmarks()
-		} else {
-        	console.log('no bookmark files, creating')
-        	const query = `INSERT DATA {
-            <#Bookmark> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
-              <http://www.w3.org/ns/solid/terms#forClass> <http://www.w3.org/2002/01/bookmark#Bookmark> ;
-              <http://www.w3.org/ns/solid/terms#instance> </public/bookmarks.ttl> .
-              <> <http://purl.org/dc/terms/references> <#Bookmark> .
-            }`
-			// Send a PATCH request to update the source
-			console.log('sending PATCH query to', this.publicTypeIndex.value ,query)
-			solid.auth.fetch(this.publicTypeIndex.value, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/sparql-update' },
-				body: query,
-				credentials: 'include',
-			}).then((ret) => {
-				console.log("finished", ret)
-			})
-		}
-		// TODO
- //      render()
-	}
-	async fetchData () {
-      	const fetcher = new $rdf.Fetcher(store);
-      	const RDF = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
-      	const DC = $rdf.Namespace('http://purl.org/dc/terms/')
-      	// Load the person's data into the store
-      	await fetcher.load(this.publicTypeIndex);
-      	// Display their details
-      	let bookmarkTypeRegistration = store.any(null, SOLID("forClass"), BOOKMARK("Bookmark"))
-      	
-      	console.log("bookmarkTypeRegistration", bookmarkTypeRegistration)
-      	console.dir(this);
-
-      	if (bookmarkTypeRegistration && bookmarkTypeRegistration.value) {
-        	let bookmarkInstance = store.any(bookmarkTypeRegistration, SOLID("instance")).value;
-	      	// Load the person's data into the store
-	      	console.log("bookmarkInstance", template.profile.bookmarkInstance)
-	      	console.dir(this)
-      	
-      		await fetcher.load(template.profile.bookmarkInstance);
-      		// Display their details
-      		const bookmarks = store.statementsMatching(null, RDF("type"), BOOKMARK("Bookmark"));
-      		console.log("Bookmarks", bookmarks);
-      	
-	      	if (bookmarks && bookmarks.length) {
-	        	template.bookmarks = []
-	        	for (var i = 0; i < bookmarks.length; i++) {
-		          	let bookmark = bookmarks[i]
-		          	let subject = bookmark.subject
-		          	let title = store.any(subject, DC('title'))
-		          	let created = store.any(subject, DC('created'))
-		          	let recall = store.any(subject, BOOKMARK('recall'))
-	          		
-	          		if (subject && recall && created && title) {
-			            template.bookmarks.push({
-			              "subject": subject.value,
-			              "recall": recall.value,
-			              "created": created.value,
-			              "title": title.value
-			            })
-	          		}
-	          		console.log("bookmark " + i, bookmark)
-	        	}
-	        	
-	        	console.log("template.bookmarks", template.bookmarks)
-	        	// render()
-	      	}
-      		// console.log()
-      	}
-      	// render()		
-	}
-});
 
 
 const MODEL = new Model();
@@ -148,12 +23,25 @@ UITools.bindEvents(CONTROLS, {
 	},
 	'onsubmit writeReview': function(e) {
 
+	},
+	'onsubmit bookmarkForm': function(e) {
+		e.preventDefault();
+		MODEL.sendReview(
+			'#' + ~~(1000000 * Math.random()),
+			CONTROLS.bookmarkFormUrlField.value,
+			CONTROLS.bookmarkFormTitleField.value
+		);
+	}, 
+	'onreset bookmarkForm': function(e) {
+		e.preventDefault();
+		CONTROLS.bookmarkFormTitleField.value = '';
+		CONTROLS.bookmarkFormUrlField.value = '';
 	}
 });
 
 // Model event listeners
 // When viewedWebId is changed we download and render all related information
-MODEL.on('change:viewedWebId', async function(webId){
+MODEL.on('change:viewedWebId', async function(model, webId){
 	await MODEL.populate(webId);
 
 	let 	fullName = MODEL.getNameOf(webId), 
@@ -179,35 +67,31 @@ MODEL.on('change:viewedWebId', async function(webId){
 		CONTROLS.friends.appendChild($li);
 	});
 });
+MODEL.on('change:bookmarks', async function(model, bookmarks){
+	console.log('New Bookmarks');
+	console.dir(bookmarks);
+	// TODO render bookmarks
+});
+MODEL.on('bookmarkSended', function(model) {
+	console.log('Bookmark sended');
+	CONTROLS.bookmarkFormTitleField.value = '';
+	CONTROLS.bookmarkFormUrlField.value = '';
+	model.fetchBookmarks();
+
+});
+// Trouble handler
+MODEL.on('change:troubles', function(model, trouble) {
+	if (trouble) {
+		// TODO if 401 error switch on authorization page
+		console.warn('Catch troubles')
+		console.dir(trouble);
+	} else {
+
+	}
+});
+
 
 window.model = MODEL;
-
-
-
-// async function sendReview() {
-//     document.getElementById('modal').classList.remove('is-active')
-//         let id = "#" + Math.random()
-//         let uri = document.getElementById('uri').value
-//         let title = document.getElementById('title').value
-//         let source = template.profile.bookmarkInstance
-//         let date = new Date().toISOString();
-//         const query = ` INSERT DATA {
-//             <${id}> a <https://www.w3.org/2002/01/bookmark#Bookmark> ;
-//             <http://purl.org/dc/terms/title>   """${title}""" ;
-//             <http://xmlns.com/foaf/0.1/maker>   <${template.profile.webId}> ;
-//             <http://purl.org/dc/terms/created>  "${date}"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-//             <https://www.w3.org/2002/01/bookmark#recall> <${uri}> .
-//           }`
-//         // Send a PATCH request to update the source
-//         console.log("query", query)
-//         solid.auth.fetch(source, {
-//           method: 'PATCH',
-//           headers: { 'Content-Type': 'application/sparql-update' },
-//           body: query,
-//           credentials: 'include',
-//         });
-// }
-
 
 // Update components to match the user's login status
 solid.auth.trackSession(async (session) => {
