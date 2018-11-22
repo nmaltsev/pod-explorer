@@ -26,7 +26,7 @@ UITools.bindEvents(CONTROLS, {
 	},
 	'onsubmit bookmarkForm': function(e) {
 		e.preventDefault();
-		MODEL.sendReview(
+		MODEL.sendBookmark(
 			'#' + ~~(1000000 * Math.random()),
 			CONTROLS.bookmarkFormUrlField.value,
 			CONTROLS.bookmarkFormTitleField.value
@@ -92,8 +92,9 @@ MODEL.on('bookmarkSended', function(model) {
 	console.log('Bookmark sended');
 	CONTROLS.bookmarkFormTitleField.value = '';
 	CONTROLS.bookmarkFormUrlField.value = '';
-	model.fetchBookmarks();
-
+	//model.fetchBookmarks();
+	// It doesn't upload new bookmarks list
+	model.fetchPublicTypeIndex();
 });
 // Trouble handler
 MODEL.on('change:troubles', function(model, trouble) {

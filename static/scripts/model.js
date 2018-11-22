@@ -39,6 +39,8 @@ const Model = UITools.$decorateWatchers([
 	getFriendsOf(webId) {
 		return this.fetcher.store.each($rdf.sym(webId), this.namespace.foaf('knows'));
 	}
+
+	// Trouble: it brings cached variant, do not try to upload!!
 	
 	async fetchPublicTypeIndex () {
 		this.publicTypeIndex = this.fetcher.store.any(
@@ -134,7 +136,7 @@ const Model = UITools.$decorateWatchers([
 		}
 	}
 
-	async sendReview(id_s, uri_s, title_s) {
+	async sendBookmark(id_s, uri_s, title_s) {
 		let source = this.bookmarkInstance.value;
 		let date_s = new Date().toISOString();
 		const query = `INSERT DATA {
@@ -157,6 +159,10 @@ const Model = UITools.$decorateWatchers([
 		}).catch(err => {
 			console.log("error updating", source, err)
 		});
+	}
+
+	async sendReview(){
+		https://schema.org/Review
 	}
 
 });
