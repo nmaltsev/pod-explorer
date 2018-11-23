@@ -32,25 +32,93 @@
 		<main class="profile-view">
 			<h1>Profile viewer</h1>
 
-
-			<form class="layout-line profile-select-form" data-co="profile-select-form">
-	  			<div class="layout-line_cell-auto">
-	  				<label for="profile" class="article-5">Profile:</label>
-	  				<input id="profile" data-co="profile-field" class="profile-select-form_login-input">
-	  			</div>
+			<form class="layout-line profile-select-form mb1" data-co="profile-select-form">
+	  			<label class="layout-line_cell-auto article-5" for="profile">Profile:</label>
+	  				
+  				<div class="layout-line_cell-full profile-select-form_login-input">
+  					<input data-co="profile-field" class="basefield">	
+  				</div>
+	  				
+	  			
 	  			<button data-co="view-btn" class="layout-line_cell-auto basebtn __invert-blue" type="submit">View</button>	
 			</form>
+
 			
-			
-			<dl data-co="viewer">
-				<dt>Full name</dt>
-				<dd data-co="full-name-label"></dd>
-				<dt>Friends</dt>
-	    		<dd>
-	      			<ul data-co="friends"></ul>
-	   			</dd>
-			</dl>
+			<div data-co="viewer" class="mb4">
+				<p class="article-1 m0 mb1">Full name: <span data-co="full-name-label"></span></p>
+				<div class="layout-line">
+					<div class="layout-line_cell-auto">Friends:</div>
+					<div class="layout-line_cell-full">
+						<ul data-co="friends"></ul>
+					</div>
+				</div>
+			</div>
+
+
+			<h2>Bookmarks</h2>
+			<div class="layout-line bookmarks-block mb3">
+				<div class="layout-line_cell-auto bookmarks-block_left">
+					<form data-co="bookmark-form">
+						<label class="bookmark-form_row">
+							<div>Title:</div>
+							<input class="basefield" type="text" data-co="bookmark-form-title-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Url:</div>
+							<input class="basefield" type="text" data-co="bookmark-form-url-field" required/>
+						</label>
+						<div>
+							<button type="reset" class="basebtn __gray">Reset</button>
+							<button type="submit" class="basebtn __blue">Submit</button>
+						</div>
+					</form>
+				</div>
+				<div class="layout-line_cell-full">
+					<div class="bookmarks-block_inner">
+						<ol data-co="bookmark-list"></ol>			
+					</div>
+				</div>
+			</div>
+
+			<h2>Reviews</h2>
+			<div class="layout-line bookmarks-block mb3">
+				<div class="layout-line_cell-auto bookmarks-block_left">
+					<form data-co="review-form">
+						<label class="bookmark-form_row">
+							<div>Hotel:</div>
+							<input class="basefield" type="text" data-co="review-form-hotel-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Country:</div>
+							<input class="basefield" type="text" data-co="review-form-country-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>City:</div>
+							<input class="basefield" type="text" data-co="review-form-city-field" required/>
+						</label>
+						<hr>
+						<label class="bookmark-form_row">
+							<div>Title:</div>
+							<input class="basefield" type="text" data-co="review-form-title-field" required placeholder="Summarize your visit or highlight an interesting detail"/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Description:</div>
+							<textarea class="basefield" data-co="review-form-description-field" required placeholder="Tell people about your experience: your room, location, amenities?"></textarea> 
+						</label>
+						<div>
+							<button type="reset" class="basebtn __gray">Reset</button>
+							<button type="submit" class="basebtn __blue">Submit</button>
+						</div>
+					</form>
+				</div>
+				<div class="layout-line_cell-full">
+					<div class="bookmarks-block_inner">
+						<ol data-co="review-list"></ol>			
+					</div>
+				</div>
+			</div>	
 		</main>
+		
 	</div>
 	<script src="libs/solid-auth-client.bundle.js"></script>
 	<script src="libs/rdflib.min.js"></script>
