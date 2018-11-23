@@ -13,6 +13,7 @@ const Model = UITools.$decorateWatchers([
 		let store = $rdf.graph();
 		// Fetcher instance will store all the collected data!
 		this.fetcher = new $rdf.Fetcher(store);
+		this.updater = new $rdf.UpdateManager(store);
 		this.namespace = {
 			foaf: $rdf.Namespace('http://xmlns.com/foaf/0.1/'),
 			bookmark: $rdf.Namespace('http://www.w3.org/2002/01/bookmark#'),
@@ -65,15 +66,26 @@ const Model = UITools.$decorateWatchers([
 				this.namespace.solid('instance')
 			);
 
+			// Subscribe on updation
+			this.updater.addDownstreamChangeListener(this.bookmarkInstance.doc(), async () => {
+				console.log('UPD');
+				console.dir(arguments)
+
+				// If updation is happened, we make force reload of bookmarks list 
+				await this.reloadBookmarks();
+				// Read bookmarks from bookmarks.ttl file
+				this.bookmarks = this.extractBookmarks();
+			});
+
 			await this.fetchBookmarks();
 		} else {
-        	console.log('no bookmark files, creating')
-        	const query = `INSERT DATA {
-            <#Bookmark> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
-              <http://www.w3.org/ns/solid/terms#forClass> <http://www.w3.org/2002/01/bookmark#Bookmark> ;
-              <http://www.w3.org/ns/solid/terms#instance> </public/bookmarks.ttl> .
-              <> <http://purl.org/dc/terms/references> <#Bookmark> .
-            }`
+			console.log('no bookmark files, creating')
+			const query = `INSERT DATA {
+			<#Bookmark> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
+				<http://www.w3.org/ns/solid/terms#forClass> <http://www.w3.org/2002/01/bookmark#Bookmark> ;
+				<http://www.w3.org/ns/solid/terms#instance> </public/bookmarks.ttl> .
+				<> <http://purl.org/dc/terms/references> <#Bookmark> .
+			}`
 			// Send a PATCH request to update the source
 			console.log('sending PATCH query to', this.publicTypeIndex.value ,query)
 			solid.auth.fetch(this.publicTypeIndex.value, {
@@ -88,6 +100,12 @@ const Model = UITools.$decorateWatchers([
 			this.bookmarks = [];
 		}
 	}
+	async reloadBookmarks() {
+		if (this.bookmarkInstance) {
+			await this.fetcher.load(this.bookmarkInstance, {force: true});	
+		}
+	}
+
 	async fetchBookmarks () {
 		let bookmarkInstance = this.fetcher.store.any(
 			this.bookmarkTypeRegistration, 
@@ -105,6 +123,11 @@ const Model = UITools.$decorateWatchers([
 			});
 		}
   		// Display their details
+		this.bookmarks = this.extractBookmarks();
+	}
+
+	extractBookmarks() {
+		// Display their details
 		const bookmarksInstance = this.fetcher.store.statementsMatching(
 			null, 
 			this.namespace.rdf('type'), 
@@ -132,7 +155,9 @@ const Model = UITools.$decorateWatchers([
 				console.log("bookmark " + i, bookmarksInstance[i])
 			}
 
-			this.bookmarks = bookmarks;
+			return bookmarks;
+		} else {
+			return [];
 		}
 	}
 
@@ -162,9 +187,28 @@ const Model = UITools.$decorateWatchers([
 	}
 
 	async sendReview(){
-		https://schema.org/Review
+		// https://schema.org/Review
 	}
 
+	createReviewFile() {
+		const query = `INSERT DATA {
+			<#Review> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
+				<http://www.w3.org/ns/solid/terms#forClass> <http://www.w3.org/2002/01/bookmark#Bookmark> ;
+				<http://www.w3.org/ns/solid/terms#instance> </public/reviews.ttl> .
+				<> <http://purl.org/dc/terms/references> <#Bookmark> .
+			}`
+			// Send a PATCH request to update the source
+			console.log('sending PATCH query to', this.publicTypeIndex.value ,query)
+			solid.auth.fetch(this.publicTypeIndex.value, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/sparql-update' },
+				body: query,
+				credentials: 'include',
+			}).then((ret) => {
+				console.log("finished", ret)
+			});
+
+	}
 });
 
 export {
