@@ -56,7 +56,7 @@
 
 
 			<h2>Bookmarks</h2>
-			<div class="layout-line bookmarks-block">
+			<div class="layout-line bookmarks-block mb3">
 				<div class="layout-line_cell-auto bookmarks-block_left">
 					<form data-co="bookmark-form">
 						<label class="bookmark-form_row">
@@ -76,6 +76,44 @@
 				<div class="layout-line_cell-full">
 					<div class="bookmarks-block_inner">
 						<ol data-co="bookmark-list"></ol>			
+					</div>
+				</div>
+			</div>
+
+			<h2>Reviews</h2>
+			<div class="layout-line bookmarks-block mb3">
+				<div class="layout-line_cell-auto bookmarks-block_left">
+					<form data-co="review-form">
+						<label class="bookmark-form_row">
+							<div>Hotel:</div>
+							<input class="basefield" type="text" data-co="review-form-hotel-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Country:</div>
+							<input class="basefield" type="text" data-co="review-form-country-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>City:</div>
+							<input class="basefield" type="text" data-co="review-form-city-field" required/>
+						</label>
+						<hr>
+						<label class="bookmark-form_row">
+							<div>Title:</div>
+							<input class="basefield" type="text" data-co="review-form-title-field" required placeholder="Summarize your visit or highlight an interesting detail"/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Description:</div>
+							<textarea class="basefield" data-co="review-form-description-field" required placeholder="Tell people about your experience: your room, location, amenities?"></textarea> 
+						</label>
+						<div>
+							<button type="reset" class="basebtn __gray">Reset</button>
+							<button type="submit" class="basebtn __blue">Submit</button>
+						</div>
+					</form>
+				</div>
+				<div class="layout-line_cell-full">
+					<div class="bookmarks-block_inner">
+						<ol data-co="review-list"></ol>			
 					</div>
 				</div>
 			</div>	

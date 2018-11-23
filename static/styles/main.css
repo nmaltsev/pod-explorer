@@ -93,6 +93,7 @@ input {
 	border-radius: 3px;
 	background: #fff;
 	width: 100%;
+	max-width: 100%; /* for resizeable textarea */
 	box-sizing: border-box;
 }
 
@@ -164,9 +165,9 @@ input {
 }
 
 
-.bookmarks-block { width: 100%; height: 200px; }
+.bookmarks-block { width: 100%; height: 320px; }
 .bookmarks-block_left { width: 240px;}
-.bookmarks-block_inner { width: 100; overflow-y: auto; }
+.bookmarks-block_inner { width: 100%; height: 100%; overflow-y: auto; }
 .bookmark-form_row { display: block; margin-bottom: 16px;}
 
 a {
@@ -177,3 +178,11 @@ a {
 a:hover {
 	color: #9b79fc;
 }
+
+.review-item {
+	margin: 0 0 12px 0;
+}
+.review-item_place { margin: 0 0 8px 0; font-size: 15px; line-height: 18px;}
+.review-item_title { margin: 0 0 8px 0; font-size: 11px; line-height: 13px; color: #aaa; }
+.review-item_description {margin: 0 0 8px 0; white-space: pre-wrap;}
+.review-item_publication-time {margin: 0; font-size: 11px; line-height: 13px; color: #aaa;}

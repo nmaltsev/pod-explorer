@@ -1,5 +1,5 @@
 import * as UITools from './common.js';
-import {Model} from './model.js';
+import {Model, Hotel} from './model.js';
 
 const popupUri = '/pages/popup.html';
 
@@ -21,13 +21,10 @@ UITools.bindEvents(CONTROLS, {
 		e.preventDefault();
 		MODEL.viewedWebId = CONTROLS.profileField.value;
 	},
-	'onsubmit writeReview': function(e) {
-
-	},
 	'onsubmit bookmarkForm': function(e) {
 		e.preventDefault();
 		MODEL.sendBookmark(
-			'#' + ~~(1000000 * Math.random()),
+			MODEL.generateDocumentUID(),
 			CONTROLS.bookmarkFormUrlField.value,
 			CONTROLS.bookmarkFormTitleField.value
 		);
@@ -36,7 +33,29 @@ UITools.bindEvents(CONTROLS, {
 		e.preventDefault();
 		CONTROLS.bookmarkFormTitleField.value = '';
 		CONTROLS.bookmarkFormUrlField.value = '';
-	}
+	},
+	'onsubmit reviewForm': async function(e) {
+		e.preventDefault();
+		let hotel = new Hotel(CONTROLS.reviewFormHotelField.value);
+		
+		hotel.setAddress(CONTROLS.reviewFormCityField.value, CONTROLS.reviewFormCountryField.value)
+
+		await MODEL.sendReview(
+			MODEL.generateDocumentUID(),
+			CONTROLS.reviewFormTitleField.value, 
+			CONTROLS.reviewFormDescriptionField.value,
+			hotel
+		);
+		CONTROLS.reviewForm.reset();		
+	},
+	'onreset reviewForm': function(e) {
+		e.preventDefault();
+		CONTROLS.reviewFormCityField.value = '';
+		CONTROLS.reviewFormHotelField.value = '';
+		CONTROLS.reviewFormCountryField.value = '';
+		CONTROLS.reviewFormTitleField.value = ''; 
+		CONTROLS.reviewFormDescriptionField.value = '';
+	},
 });
 
 // Model event listeners
@@ -68,9 +87,6 @@ MODEL.on('change:viewedWebId', async function(model, webId){
 	});
 });
 MODEL.on('change:bookmarks', async function(model, bookmarks){
-	console.log('New Bookmarks');
-	console.dir(bookmarks);
-	// TODO render bookmarks
 	UITools.emptyNode(CONTROLS.bookmarkList);
 	
 	var $a, $li;
@@ -85,16 +101,15 @@ MODEL.on('change:bookmarks', async function(model, bookmarks){
 		$li.appendChild($a);
 		CONTROLS.bookmarkList.appendChild($li);	
 	}	
-
-	
 });
+// When bookmark form succesfully  submitted we can clean form 
 MODEL.on('bookmarkSended', function(model) {
-	console.log('Bookmark sended');
-	CONTROLS.bookmarkFormTitleField.value = '';
-	CONTROLS.bookmarkFormUrlField.value = '';
-	//model.fetchBookmarks();
-	// It doesn't upload new bookmarks list
-	model.fetchPublicTypeIndex();
+	CONTROLS.bookmarkForm.reset();
+	model.fetchBookmarks(true);
+});
+MODEL.on('reviewSended', function(model) {
+	CONTROLS.reviewForm.reset();
+	model.fetchReviews(true);
 });
 // Trouble handler
 MODEL.on('change:troubles', function(model, trouble) {
@@ -105,6 +120,33 @@ MODEL.on('change:troubles', function(model, trouble) {
 	} else {
 
 	}
+});
+MODEL.on('change:reviews', async function(model, reviews){
+	UITools.emptyNode(CONTROLS.reviewList);
+
+	var $li, review, title_s, r;
+
+	// // TODO create document fragment
+	for (var i = 0; i < reviews.length; i++) {
+		$li = UITools.cr('li');
+		r = reviews[i];
+
+		if (r.hotel) {
+			title_s = r.hotel.getShortName();
+		} else {
+			title_s = '';
+		}
+
+		$li.className = 'review-item';
+		$li.insertAdjacentHTML('beforeEnd', 
+		`<h3 class="review-item_place">${title_s}</h3>
+		<p class="review-item_title">${r.name}</p>
+		<pre class="review-item_description">${r.description}</pre>
+		<p class="review-item_publication-time">${r.datePublished}</p>`);
+
+
+		CONTROLS.reviewList.appendChild($li);	
+	}	
 });
 
 
