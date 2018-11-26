@@ -1,5 +1,7 @@
 # Solid demo app
 
+[demo](https://nmalcev.github.io/soliddemo/) 
+
 ### Step by step
 
 Install `npm i`

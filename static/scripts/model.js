@@ -7,6 +7,7 @@ class Hotel {
 	setAddress (locality_s, country_s){
 		this.locality_s = locality_s;
 		this.country_s = country_s;
+		return this;
 	}
 	getShortName() {
 		let out = this.name_s;
@@ -24,6 +25,7 @@ const Model = UITools.$decorateWatchers([
 	'bookmarks',
 	'reviews',
 	'troubles',
+	'currentEditReview',
 ], class Model extends UITools.Events {
 	constructor (){
 		super();
@@ -113,14 +115,14 @@ const Model = UITools.$decorateWatchers([
 			}`
 			// Send a PATCH request to update the source
 			console.log('sending PATCH query to', this.publicTypeIndex.value ,query)
-			solid.auth.fetch(this.publicTypeIndex.value, {
+			await solid.auth.fetch(this.publicTypeIndex.value, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/sparql-update' },
 				body: query,
 				credentials: 'include',
-			}).then((ret) => {
+			}); /*.then((ret) => {
 				console.log("finished", ret)
-			});
+			});*/
 
 			this.bookmarks = [];
 		}
@@ -297,12 +299,6 @@ const Model = UITools.$decorateWatchers([
 	}
 
 	createReviewFile() {
-		// const query = `INSERT DATA {
-		// 	<#Review> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
-		// 		<http://www.w3.org/ns/solid/terms#forClass> <https://schema.org/Review#Review> ;
-		// 		<http://www.w3.org/ns/solid/terms#instance> </public/reviews.ttl> .
-		// 		<> <http://purl.org/dc/terms/references> <#Review> .
-		// 	}`;
 		const query = `INSERT DATA {
 			<#Review> a <http://www.w3.org/ns/solid/terms#TypeRegistration> ;
 				<http://www.w3.org/ns/solid/terms#forClass> <https://schema.org/Review> ;
@@ -321,11 +317,6 @@ const Model = UITools.$decorateWatchers([
 		});
 	}
 
-	deleteReviewFile() {
-		// It doesn't work
-		this.fetcher.webOperation('DELETE', this.reviewInstance.uri);
-	}
-
 	async fetchReviews (isForce) {
 		let loadProps = {};
 		if (isForce) loadProps.force = true;
@@ -333,11 +324,15 @@ const Model = UITools.$decorateWatchers([
 		try {
 			await this.fetcher.load(this.reviewInstance, loadProps);	
 		} catch (e) {
-			await solid.auth.fetch(this.reviewInstance, {
-				method : 'PATCH',
-				headers : {'content-type' : 'application/sparql-update'},
-				body : ''
-			});
+			// Attention: there is strange backend behaviour. File may exists in the public index, but it doesn't exist on file system. 
+			this.createReviewFile();
+			this.reviews = [];
+			// ...
+			// await solid.auth.fetch(this.reviewInstance, {
+			// 	method : 'PATCH',
+			// 	headers : {'content-type' : 'application/sparql-update'},
+			// 	body : ''
+			// });
 		}
   		// Display their details
 		this.reviews = this.extractReviews();
@@ -352,20 +347,25 @@ const Model = UITools.$decorateWatchers([
 
 		if (reviewStore && reviewStore.length) {
 			let reviews = [];
+			console.log('reviewStore');
+			console.dir(reviewStore)
 
 			for (var i = 0; i < reviewStore.length; i++) {
 				let subject = reviewStore[i].subject;
-				let review = {};
+				let review = {id: '#' + subject.value.split('#')[1]};
 				let author = this.fetcher.store.any(subject, this.namespace.schemaOrg('author')); 
 				let datePublished = this.fetcher.store.any(subject, this.namespace.schemaOrg('datePublished'));
 				let description = this.fetcher.store.any(subject, this.namespace.schemaOrg('description'));
 				let name = this.fetcher.store.any(subject, this.namespace.schemaOrg('name'));
 				let hotelInstance = this.fetcher.store.any(subject, this.namespace.schemaOrg('hotel'));
 
+				console.log('Subject');
+				console.dir(subject);
+
 				if (author) review.author = author.value;
 				if (datePublished) review.datePublished = new Date(datePublished.value);
 				if (description) review.description = description.value;
-				if (name) review.name = name.value;
+				if (name) review.title = name.value;
 
 				if (hotelInstance) {
 					// TODO transform in Class
@@ -387,6 +387,86 @@ const Model = UITools.$decorateWatchers([
 		} else {
 			return [];
 		}
+	}
+
+	async deleteReviewFile() {
+		await this.fetcher.webOperation('DELETE', this.reviewInstance.uri);		
+	}
+
+	async delReview(id_s) {
+		// console.dir(del)
+		const query = `DELETE DATA {
+			@prefix schema: <https://schema.org/> .
+			@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+			@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+			<${id_s}> a schema:Review ;
+			foaf:maker <${this.webId}>.
+		}`;
+
+		// Send a PATCH request to update the source
+		solid.auth.fetch(this.reviewInstance.value, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/sparql-update' },
+			body: query,
+			credentials: 'include',
+		}).then((ret) => {
+			// this.trigger('reviewSended', this);
+		}).catch(err => {
+			console.log("error updating", source, err)
+		});
+	}
+
+	async updateReview(id_s, title_s, description_s, hotel) {
+		let date_s = new Date().toISOString();
+		const query = `
+		@prefix schema: <https://schema.org/> .
+		@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+		@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+		DELETE DATA {
+			<${id_s}> a schema:Review ;
+			foaf:maker <${this.webId}>.
+		}
+		INSERT DATA {
+			<${id_s}> a schema:Review ;
+			foaf:maker <${this.webId}>;
+			schema:author "Ellie"^^xsd:string ;
+			schema:datePublished "${date_s}"^^schema:dateTime ;
+			schema:description """${this.escape4rdf(description_s)}"""^^xsd:string ;
+			schema:name """${this.escape4rdf(title_s)}"""^^xsd:string ;
+			schema:reviewRating [
+				a schema:Rating ;
+				schema:bestRating "5"^^xsd:string ;
+				schema:ratingValue "1"^^xsd:string ;
+				schema:worstRating "1"^^xsd:string
+			] ;
+			schema:hotel [
+				a schema:Hotel ;
+				schema:name """${this.escape4rdf(hotel.name_s)}"""^^xsd:string ;
+				schema:address [
+					a schema:PostalAddress ;
+					schema:addressCountry "${this.escape4rdf(hotel.country_s)}"^^xsd:string ;
+					schema:addressLocality "${this.escape4rdf(hotel.locality_s)}"^^xsd:string ;
+					schema:addressRegion "Alpes-Maritimes"^^xsd:string ;
+					schema:postalCode "006200"^^xsd:string ;
+					schema:streetAddress "Rue de France 20"^^xsd:string
+				] ;
+			] .
+		}
+		`;
+
+		// Send a PATCH request to update the source
+		solid.auth.fetch(this.reviewInstance.value, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/sparql-update' },
+			body: query,
+			credentials: 'include',
+		}).then((ret) => {
+			this.trigger('reviewSended', this);
+		}).catch(err => {
+			console.log("error updating", source, err)
+		});
 	}
 });
 

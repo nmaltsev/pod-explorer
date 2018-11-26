@@ -31,21 +31,40 @@ function findNodes($target, controls){
 };
 
 function bindEvents(controls, events){
-	var 	pos, controlName, eventName, elem;
+	var 	pos_i, controlName, eventName, elem, _stack_c = [], key;
 
-	for(var key in events){
-		pos = key.indexOf(' ');
+	for (key in events) {
+		pos_i = key.indexOf(' ');
 		
-		if(pos != -1){
-			controlName = key.substr(pos + 1);
-			eventName = key.substr(0, pos);
+		if (pos_i != -1) {
+			controlName = key.substr(pos_i + 1);
+			eventName = key.substr(0, pos_i);
 			elem = controls[controlName] || document.all[controlName];
 
-			if(elem){
+			if (elem){
 				elem[eventName] = events[key];
+				elem.addEventListener(eventName, events[key]); 
+				_stack_c.push(elem, key, eventName, events[key]);
 			}
 		}
 	}
+
+	return function(control, eventId, eventHandler){
+		var offset_i = typeof(control) == 'string' ? 1 : 0;
+		var isCleanUp = control == null;
+
+		for (var i = 0; i < _stack_c.length; i += 4) {
+			if (
+				isCleanUp || (
+					_stack_c[i + offset_i] == control 
+					&& (eventId != null ? _stack_c[i + 2] == eventId : true) 
+					&& (eventHandler != null ? _stack_c[i + 3] == eventHandler : true) 
+				)
+			) {
+				_stack_c[i].removeEventListener(_stack_c[i + 2], _stack_c[i + 3]);
+			}	
+		}
+	};
 };
 
 function $decorateWatchers(preferences, class_o) {
@@ -146,7 +165,11 @@ Events.prototype.once = function(name, cb){
 	this._handlers[name].push(_cb);
 	return _cb;
 };
-
+Events.prototype.bindEvents = function(eventMap_c) {
+	for(var event in eventMap_c) {
+		this.on(event, eventMap_c[event]);
+	}
+}
 
 export {
 	$decorateWatchers,

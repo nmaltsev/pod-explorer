@@ -180,9 +180,12 @@ a:hover {
 }
 
 .review-item {
+	position: relative;
 	margin: 0 0 12px 0;
 }
 .review-item_place { margin: 0 0 8px 0; font-size: 15px; line-height: 18px;}
 .review-item_title { margin: 0 0 8px 0; font-size: 11px; line-height: 13px; color: #aaa; }
 .review-item_description {margin: 0 0 8px 0; white-space: pre-wrap;}
 .review-item_publication-time {margin: 0; font-size: 11px; line-height: 13px; color: #aaa;}
+.review-item_tool-panel { display: none; position: absolute; top: 0; right: 0; }
+.review-item:hover > .review-item_tool-panel { display: block; }

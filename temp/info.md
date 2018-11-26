@@ -1,6 +1,8 @@
 https://linkeddata.github.io/rdflib.js/Documentation/webapp-intro.html
 http://linkeddata.github.io/rdflib.js/Documentation/turtle-intro.html
 http://graphitethesis.icanhasweb.net/
+https://www.w3.org/TR/turtle/
+http://planetrdf.com/guide/
 
 ```  
 const me = store.sym('https://example.com/alice/card#me');
