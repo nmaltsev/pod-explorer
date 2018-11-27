@@ -322,7 +322,9 @@ const Model = UITools.$decorateWatchers([
 		if (isForce) loadProps.force = true;
 
 		try {
-			await this.fetcher.load(this.reviewInstance, loadProps);	
+			await this.fetcher.load(this.reviewInstance, loadProps);
+			// Display their details
+			this.reviews = this.extractReviews();		
 		} catch (e) {
 			// Attention: there is strange backend behaviour. File may exists in the public index, but it doesn't exist on file system. 
 			this.createReviewFile();
@@ -334,8 +336,6 @@ const Model = UITools.$decorateWatchers([
 			// 	body : ''
 			// });
 		}
-  		// Display their details
-		this.reviews = this.extractReviews();
 	}
 
 	extractReviews() {
@@ -352,7 +352,7 @@ const Model = UITools.$decorateWatchers([
 
 			for (var i = 0; i < reviewStore.length; i++) {
 				let subject = reviewStore[i].subject;
-				let review = {id: '#' + subject.value.split('#')[1]};
+				let review = {id: '#' + subject.value.split('#')[1], subject};
 				let author = this.fetcher.store.any(subject, this.namespace.schemaOrg('author')); 
 				let datePublished = this.fetcher.store.any(subject, this.namespace.schemaOrg('datePublished'));
 				let description = this.fetcher.store.any(subject, this.namespace.schemaOrg('description'));
@@ -361,6 +361,7 @@ const Model = UITools.$decorateWatchers([
 
 				console.log('Subject');
 				console.dir(subject);
+				console.dir(name)
 
 				if (author) review.author = author.value;
 				if (datePublished) review.datePublished = new Date(datePublished.value);
@@ -393,7 +394,22 @@ const Model = UITools.$decorateWatchers([
 		await this.fetcher.webOperation('DELETE', this.reviewInstance.uri);		
 	}
 
-	async delReview(id_s) {
+	async delReview(id_s, subject) {
+		const query2 = `CLEAR GRAPH <${subject.uri}>`;
+
+		// Send a PATCH request to update the source
+		solid.auth.fetch(this.reviewInstance.value, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/sparql-update' },
+			body: query2,
+			credentials: 'include',
+		}).then((ret) => {
+			// this.trigger('reviewSended', this);
+		}).catch(err => {
+			console.log("error updating", source, err)
+		});
+
+		return;
 		// console.dir(del)
 		const query = `DELETE DATA {
 			@prefix schema: <https://schema.org/> .

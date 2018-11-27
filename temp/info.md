@@ -4,6 +4,8 @@ http://graphitethesis.icanhasweb.net/
 https://www.w3.org/TR/turtle/
 http://planetrdf.com/guide/
 
+rdf source https://searchcode.com/codesearch/view/7502380/
+
 ```  
 const me = store.sym('https://example.com/alice/card#me');
 const profile = me.doc();       //i.e. store.sym(''https://example.com/alice/card#me')
@@ -150,3 +152,40 @@ ex:Arne foaf:knows ex:Kjetil ;
     } 
 } 
 ```
+
+```
+$rdf.parse(data.toString(), kb, 'foaf.rdf', 'application/rdf+xml', function(err, kb) {
+    if (err) { /* error handling */ }
+
+    var me = kb.sym('http://kindl.io/christoph/foaf.rdf#me');
+
+    // - add new properties
+    kb.add(me, FOAF('mbox'), kb.sym('mailto:e0828633@student.tuwien.ac.at'));
+    kb.add(me, FOAF('nick'), 'ckristo');
+
+    // - alter existing statement
+    kb.removeMany(me, FOAF('age'));
+    kb.add(me, FOAF('age'), kb.literal(25, null, XSD('integer')));
+
+    // - find some existing statements and iterate over them
+    var statements = kb.statementsMatching(me, FOAF('mbox'));
+    statements.forEach(function(statement) {
+        console.log(statement.object.uri);
+    });
+
+    // - delete some statements
+    kb.removeMany(me, FOAF('mbox'));
+
+    // - print modified RDF document
+    $rdf.serialize(undefined, kb, undefined, 'application/rdf+xml', function(err, str) {
+        console.log(str);
+    });
+});
+```
+
+
+var reviewStore = model.fetcher.store.statementsMatching(
+  null, 
+  model.namespace.rdf('type'), 
+  model.namespace.schemaOrg('Review')
+);

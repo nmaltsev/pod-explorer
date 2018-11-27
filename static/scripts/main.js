@@ -149,6 +149,7 @@ MODEL.bindEvents({
 		model.fetchBookmarks(true);
 	},
 	'reviewSended': function(model) {
+		console.log('[TRIG reviewSended]');
 		CONTROLS.reviewForm.reset();
 		model.fetchReviews(true);
 	},
@@ -163,6 +164,9 @@ MODEL.bindEvents({
 		}
 	},
 	'change:reviews': async function(model, reviews){
+		console.log('[change:reviews]');
+		console.dir(reviews);
+
 		UITools.emptyNode(CONTROLS.reviewList);
 
 		var review, title_s;
@@ -193,7 +197,7 @@ MODEL.bindEvents({
 			let _unbind = UITools.bindEvents(reviewControls, {
 				'click remove': function(e) {
 					e.preventDefault();
-					MODEL.delReview(r.id);
+					MODEL.delReview(r.id, r.subject);
 
 					_unbind();
 					$li.remove();
