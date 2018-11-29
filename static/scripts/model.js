@@ -49,6 +49,10 @@ const Model = UITools.$decorateWatchers([
 		return '#' + this.sessionId + '.' + this.generateRandToken(2);
 	}
 
+	generateRandToken(n) {
+		return ~~((1 << n *10) * Math.random());
+	}
+
 	async populate(webId) {
 		this.troubles = null;
 		try {
@@ -69,7 +73,7 @@ const Model = UITools.$decorateWatchers([
 
 	// Trouble: it brings cached variant, do not try to upload!!
 	
-	async fetchPublicTypeIndex () {
+	async fetchPublicTypeIndex (isForce) {
 		this.publicTypeIndex = this.fetcher.store.any(
 			$rdf.sym(this.webId), 
 			this.namespace.solid('publicTypeIndex'), 
@@ -77,7 +81,7 @@ const Model = UITools.$decorateWatchers([
 			$rdf.sym(this.webId.split('#')[0]));
 
 		// Load the person's data into the store
-		await this.fetcher.load(this.publicTypeIndex);
+		await this.fetcher.load(this.publicTypeIndex, {force: isForce});
 
 		// Display bookmarks details
 		this.bookmarkTypeRegistration = this.fetcher.store.any(
@@ -131,8 +135,8 @@ const Model = UITools.$decorateWatchers([
 		this.reviewTypeRegistration = this.fetcher.store.any(
 			null, 
 			this.namespace.solid('forClass'), 
-			// this.namespace.schemaOrg('Review')
-			this.namespace.review('Review')
+			this.namespace.review('Review'), // this.namespace.schemaOrg('Review')
+			this.publicTypeIndex // null
 		);
 
 		if (this.reviewTypeRegistration && this.reviewTypeRegistration.value) {
@@ -147,10 +151,10 @@ const Model = UITools.$decorateWatchers([
 				this.fetchReviews(true);
 			});
 
-			await this.fetchReviews();
+			return await this.fetchReviews();
 		} else { // There is no reviews.ttl, create it
-			this.createReviewFile();
-			this.reviews = [];
+			await this.createReviewFile();
+			return this.reviews = [];
 		}
 	}
 
@@ -240,9 +244,7 @@ const Model = UITools.$decorateWatchers([
 		});
 	}
 
-	generateRandToken(n) {
-		return ~~((1 << n *10) * Math.random());
-	}
+	
 
 	escape4rdf(property) {
 		return property.replace(/\"/g, '\'');
@@ -352,7 +354,7 @@ const Model = UITools.$decorateWatchers([
 
 			for (var i = 0; i < reviewStore.length; i++) {
 				let subject = reviewStore[i].subject;
-				let review = {id: '#' + subject.value.split('#')[1], subject};
+				let review = {id: '#' + subject.value.split('#')[1], subject: reviewStore[i]};
 				let author = this.fetcher.store.any(subject, this.namespace.schemaOrg('author')); 
 				let datePublished = this.fetcher.store.any(subject, this.namespace.schemaOrg('datePublished'));
 				let description = this.fetcher.store.any(subject, this.namespace.schemaOrg('description'));
@@ -393,32 +395,31 @@ const Model = UITools.$decorateWatchers([
 	async deleteReviewFile() {
 		await this.fetcher.webOperation('DELETE', this.reviewInstance.uri);		
 	}
+ 
+	async delReview(id_s, subject,r) {
+		console.log('DelReview');
+		console.dir(r);
+		console.dir()
 
-	async delReview(id_s, subject) {
-		const query2 = `CLEAR GRAPH <${subject.uri}>`;
+		// var query = "DELETE DATA { " + oldS.toNT() + " }";
+  //       if (oldS['why'] && oldS['why']['value'].length > 0) {
+  //         graphURI = oldS['why']['value'];
+  //       } else {
+  //         graphURI = oldS['subject']['value'];
+  //       }
+  		var query = "DELETE DATA { " + subject.toNT() + " }";
+  		console.log(query);
 
-		// Send a PATCH request to update the source
-		solid.auth.fetch(this.reviewInstance.value, {
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/sparql-update' },
-			body: query2,
-			credentials: 'include',
-		}).then((ret) => {
-			// this.trigger('reviewSended', this);
-		}).catch(err => {
-			console.log("error updating", source, err)
-		});
+		// return;
+		// // console.dir(del)
+		// const query = `DELETE DATA {
+		// 	@prefix schema: <https://schema.org/> .
+		// 	@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+		// 	@prefix foaf: <http://xmlns.com/foaf/0.1/>.
 
-		return;
-		// console.dir(del)
-		const query = `DELETE DATA {
-			@prefix schema: <https://schema.org/> .
-			@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-			@prefix foaf: <http://xmlns.com/foaf/0.1/>.
-
-			<${id_s}> a schema:Review ;
-			foaf:maker <${this.webId}>.
-		}`;
+		// 	<${id_s}> a schema:Review ;
+		// 	foaf:maker <${this.webId}>.
+		// }`;
 
 		// Send a PATCH request to update the source
 		solid.auth.fetch(this.reviewInstance.value, {

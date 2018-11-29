@@ -197,7 +197,7 @@ MODEL.bindEvents({
 			let _unbind = UITools.bindEvents(reviewControls, {
 				'click remove': function(e) {
 					e.preventDefault();
-					MODEL.delReview(r.id, r.subject);
+					MODEL.delReview(r.id, r.subject, r);
 
 					_unbind();
 					$li.remove();
