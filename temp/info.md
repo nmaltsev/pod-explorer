@@ -3,8 +3,10 @@ http://linkeddata.github.io/rdflib.js/Documentation/turtle-intro.html
 http://graphitethesis.icanhasweb.net/
 https://www.w3.org/TR/turtle/
 http://planetrdf.com/guide/
-
-rdf source https://searchcode.com/codesearch/view/7502380/
+rdf.js description 
+    http://rdf.js.org/
+    https://github.com/rdfjs/rdfjs.github.io/wiki/Architecture#low-level
+rdf.js source https://searchcode.com/codesearch/view/7502380/
 
 ```  
 const me = store.sym('https://example.com/alice/card#me');
