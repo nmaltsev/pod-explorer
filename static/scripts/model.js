@@ -83,6 +83,8 @@ const Model = UITools.$decorateWatchers([
 		// Load the person's data into the store
 		await this.fetcher.load(this.publicTypeIndex, {force: isForce});
 
+		if (true) return;
+
 		// Display bookmarks details
 		this.bookmarkTypeRegistration = this.fetcher.store.any(
 			null, 

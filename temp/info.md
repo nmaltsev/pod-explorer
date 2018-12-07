@@ -8,6 +8,10 @@ rdf.js description
     https://github.com/rdfjs/rdfjs.github.io/wiki/Architecture#low-level
 rdf.js source https://searchcode.com/codesearch/view/7502380/
 
+ACL
+  https://github.com/solid/solid-spec/blob/master/acl-inheritance.md
+  https://www.w3.org/wiki/WebAccessControl
+
 ```  
 const me = store.sym('https://example.com/alice/card#me');
 const profile = me.doc();       //i.e. store.sym(''https://example.com/alice/card#me')

@@ -1,0 +1,438 @@
+import * as UITools from './common.js';
+
+const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+const DCT = $rdf.Namespace("http://purl.org/dc/terms/");
+const SIOC = $rdf.Namespace("http://rdfs.org/sioc/ns#");
+const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+const SPACE = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
+const ACL = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+var LDPX = $rdf.Namespace("http://ns.rww.io/ldpx#");
+const LDP = $rdf.Namespace('http://www.w3.org/ns/ldp#')
+const NS = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+const STAT = $rdf.Namespace('http://www.w3.org/ns/posix/stat#')
+const TERMS = $rdf.Namespace('http://purl.org/dc/terms/')
+const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+
+function parseLinkHeader(header) {
+   	var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
+	var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
+
+	var matches = header.match(linkexp);
+	var rels = new Object();
+	for (var i = 0; i < matches.length; i++) {
+		var split = matches[i].split('>');
+		var href = split[0].substring(1);
+		var ps = split[1];
+		var link = new Object();
+		link.href = href;
+		var s = ps.match(paramexp);
+		for (var j = 0; j < s.length; j++) {
+			var p = s[j];
+			var paramsplit = p.split('=');
+			var name = paramsplit[0];
+			link[name] = unquote(paramsplit[1]);
+		}
+
+		if (link.rel != undefined) {
+			rels[link.rel] = link;
+		}
+	}   
+    
+    return rels;
+}
+function unquote(value) {
+    if (value.charAt(0) == '"' && value.charAt(value.length - 1) == '"') return value.substring(1, value.length - 1);
+    return value;
+}
+// get the base name of a path (e.g. filename)
+// basename('/root/dir1/file') -> 'file'
+function basename(path_s) {
+	let path;
+    if (path_s.substring(path_s.length - 1) == '/') {
+        path = path_s.substring(0, path_s.length - 1);
+    }
+    else {
+    	path = path_s;
+    }
+
+    var a = path.split('/');
+    return a[a.length - 1];
+}
+function getParent(url_s) {
+	let list = url_s.replace(/(?<!\:)\/+/g,'/').split('/');
+	let pos = list.length;
+
+	if (pos > 3 && !list[pos -1] ) {pos--;}
+	if (pos > 3) {pos--;}
+
+	return list.length > 4 ? list.slice(0, pos).join('/') + '/' : null;
+}
+
+// function getParent(url_s) {
+// 	let list = url_s.replace(/(?<!\:)\/+/g,'/').split('/');
+// 	let i = list.length;
+// 	let j = 0
+
+// 	console.dir(i);
+
+// 	if (list.length < 5) return null;
+
+// 	while(i-- > 3 && j < 1 ){
+// 		if (list[i]) j++;
+// 	}
+	
+// 	return list.slice(0, i+1).join('/') + '/';
+// }
+
+
+class StorageException {
+	constructor(code) {
+		this.code = code;
+	}
+	toString(){
+		return `[${this.code}] ${this.codeMap[this.code] || ''}`;
+	}
+}
+StorageException.prototype.codeMap = {
+	100: 'Unvalid folder path'
+}
+
+const Storage = UITools.$decorateWatchers([
+	'url', // current folder
+	'prevUrl',
+	'troubles',
+	'nodeList',
+	'isNodeListLoading',
+	'sortBy',
+], class Storage extends UITools.Events {
+	constructor() {
+		super();
+		let store = $rdf.graph();
+		// Fetcher instance will store all the collected data!
+		this.fetcher = new $rdf.Fetcher(store);
+	}
+	async _loadDir(uri_s) {
+		const uri = encodeURI(uri_s.replace(/\/?$/, '/'))
+		const store = $rdf.graph()
+		const fetcher = new $rdf.Fetcher(store)
+ 
+		const response = await fetcher.load(uri);
+		this._linkHeaders = parseLinkHeader(response.headers.get('Link'));
+
+		// get list of all nodes in dir
+		const nodes = store.each($rdf.sym(uri), LDP('contains'));
+
+		return nodes.map((node) => {
+			return {
+				uri: node.value,
+				name: decodeURIComponent(node.value.replace(uri, '')),
+				type: this._getType(store.each(node, NS('type'))),
+				dateModified: new Date(store.any(node, TERMS('modified'))),
+				size: store.any(node, STAT('size')).value
+			};
+		});
+	}
+	_getType(types) {
+		for (var i = 0; i < types.length; i++) {
+			if (this._MEDIA_TYPES.test(types[i].value)) {
+				return types[i].value
+				.replace(this._MEDIA_TYPES, '')
+				.replace(/#.*$/, '')
+			}
+		}
+		return 'directory';
+	}
+	async showFolder(uri_s) {
+		// this.url = uri_s;
+		this.isNodeListLoading = true;
+		const list = this._sort(await this._loadDir(uri_s), this.sortBy);
+		const parent_s = getParent(uri_s);
+
+		console.log('URI: `%s`, parent `%s`', uri_s, parent_s);
+
+		if (parent_s) {
+			// Add parent folder at first position 
+			list.unshift({
+				uri: getParent(uri_s),
+				name: '...',
+				type: 'parent'
+			});
+		}
+		
+		this.nodeList = list;
+		this.isNodeListLoading = false;
+	}
+
+	sort(sortBy) {
+		this.sortBy = sortBy;
+		let cb = this._sortCallbacks[this.sortBy];
+
+		if (cb) {
+			this.nodeList = this.nodeList.sort(cb) 	
+		} 
+	}
+	_sort(inputList, sortBy) {
+		let cb = this._sortCallbacks[this.sortBy];
+
+		return cb ? inputList.sort(cb) : inputList;
+	}
+
+	async getContent(url_s) {
+		console.log('[getContent] `%s`', url_s);
+		let response = await solid.auth.fetch(url_s,{ 
+			method: 'GET' 
+		});
+		
+		let contentType= response.headers.get('Content-Type')
+		let text = await response.text();
+
+		// response.body.getReader().read().then((r) => {
+		// 	console.log('SRE %s', r.done);
+		// 	console.dir(r.value);
+		// });
+
+		return {
+			text,
+			contentType
+		};
+	}
+
+	
+	async populate(webId, isForce) {
+		this.troubles = null;
+		try {
+			await this.fetcher.load(webId, {force: isForce});	
+		} catch (e) {
+			this.troubles = e;
+		}
+	}
+	async createFolder(parentUrl, folderName) {
+		const response = await solid.auth.fetch(
+			parentUrl, 
+			{
+				method: 'POST',
+				headers: { 
+					'Content-Type': 'text/turtle',
+					Slug: folderName,
+					Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
+				},
+				credentials: 'include',
+			}
+		);
+	}
+	async removeEntry(url) {
+		await solid.auth.fetch(url, {
+			method: 'DELETE'
+		});
+	}
+
+	//-------------------------------------------------
+	// Get ACL data of not downloaded folder
+	async getFolderInfo(folderUri) {
+		const folderResponse = await solid.auth.fetch(
+			folderUri, 
+			{
+				method: 'HEAD',
+				headers: { 
+					'Content-Type': 'text/turtle',
+				},
+				credentials: 'include',
+			}
+		);
+
+		const linkHeaders = parseLinkHeader(folderResponse.headers.get('Link'));
+		let aclResponse = await this._downloadACLFile(folderUri + linkHeaders.acl.href);
+		
+		console.log('Link headers');
+		console.dir(linkHeaders);
+		console.dir(aclResponse);
+	}
+	async _downloadACLFile(aclUrl) {
+		// TODO use $rdf.fetcher
+		return await solid.auth.fetch(
+			aclUrl, 
+			{
+				method: 'GET',
+				headers: { 
+					'Content-Type': 'text/turtle',
+				},
+				credentials: 'include',
+			}
+		);		
+	}
+
+	// Get ACL data of downloaded folder (currentfolder)
+	async getACL () {
+		const uri = this.url;
+		var aclURI = this._linkHeaders.acl.href;
+
+		let aclResponse = await this._downloadACLFile(uri + aclURI);
+		console.dir(aclResponse);
+	}
+
+	async setACL(type) {
+		const uri = this.url;
+		var aclURI = uri + this._linkHeaders.acl.href;
+		console.log('aclURI `%s` this._linkHeaders.acl.href: %s', aclURI, this._linkHeaders.acl.href);
+		// frag identifier
+		var frag = this.url +'#'+basename(uri);		
+
+		var g = $rdf.graph();
+	    // add document triples
+		g.add(/*$rdf.sym('')*/'', RDF('type'), WAC('Authorization'));
+		g.add(/*$rdf.sym('')*/'', WAC('accessTo'), /*$rdf.sym('')*/'');
+		g.add(/*$rdf.sym('')*/'', WAC('accessTo'), $rdf.sym(uri));
+		g.add(/*$rdf.sym('')*/'',	WAC('agent'), $rdf.sym(this.webId));
+		g.add(/*$rdf.sym('')*/'',	WAC('mode'), WAC('Read'));
+		g.add(/*$rdf.sym('')*/'',	WAC('mode'), WAC('Write'));
+
+
+		// add post triples
+		g.add($rdf.sym(frag), RDF('type'), WAC('Authorization'));
+		g.add($rdf.sym(frag), WAC('accessTo'), $rdf.sym(uri));
+		// public visibility
+		if (type == 'public' || type == 'friends') {
+			g.add($rdf.sym(frag), WAC('agent'), $rdf.sym(this.webId));
+			g.add($rdf.sym(frag), WAC('agentClass'), FOAF('Agent'));
+			g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
+		} else if (type == 'private') {
+			// private visibility
+			g.add($rdf.sym(frag), WAC('agent'), $rdf.sym(this.webId));
+			g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
+			g.add($rdf.sym(frag), WAC('mode'), WAC('Write'));
+		}
+		// The predicate defaultForNew can only be used in containers ACLs.
+		// if (defaultForNew && uri.substring(uri.length - 1) == '/')
+		g.add($rdf.sym(frag), WAC('defaultForNew'), $rdf.sym(uri));
+
+		var s = new $rdf.Serializer(g).toN3(g);
+
+		const response = await solid.auth.fetch(
+			aclURI, 
+			{
+				method: 'PUT',
+				headers: { 
+					'Content-Type': 'text/turtle',
+				},
+				credentials: 'include',
+				body: s
+			}
+		);
+
+		console.log('S: %s');
+		console.dir(s);
+
+		return;
+
+		// get the acl URI first
+		$.ajax({
+			type: "HEAD",
+			url: uri,
+			xhrFields: {
+				withCredentials: true
+			},
+			success: function(d,s,r) {
+	            // acl URI
+	           	var acl = parseLinkHeader(r.getResponseHeader('Link'));
+				var aclURI = acl['acl']['href'];
+				// frag identifier
+				var frag = '#'+basename(uri);
+
+			    var g = $rdf.graph();
+			    // add document triples
+				g.add($rdf.sym(''), RDF('type'), WAC('Authorization'));
+				g.add($rdf.sym(''), WAC('accessTo'), $rdf.sym(''));
+				g.add($rdf.sym(''), WAC('accessTo'), $rdf.sym(uri));
+				g.add($rdf.sym(''),	WAC('agent'), $rdf.sym($scope.me.webid));
+				g.add($rdf.sym(''),	WAC('mode'), WAC('Read'));
+				g.add($rdf.sym(''),	WAC('mode'), WAC('Write'));
+
+				// add post triples
+				g.add($rdf.sym(frag), RDF('type'), WAC('Authorization'));
+				g.add($rdf.sym(frag), WAC('accessTo'), $rdf.sym(uri));
+				// public visibility
+				if (type == 'public' || type == 'friends') {
+					g.add($rdf.sym(frag), WAC('agentClass'), FOAF('Agent'));
+					g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
+				} else if (type == 'private') {
+					// private visibility
+					g.add($rdf.sym(frag), WAC('agent'), $rdf.sym($scope.me.webid));
+					g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
+					g.add($rdf.sym(frag), WAC('mode'), WAC('Write'));
+				}
+				if (defaultForNew && uri.substring(uri.length - 1) == '/')
+					g.add($rdf.sym(frag), WAC('defaultForNew'), $rdf.sym(uri));
+
+				var s = new $rdf.Serializer(g).toN3(g);
+
+				if (s && aclURI) {
+					$.ajax({
+				        type: "PUT", // overwrite just in case
+				        url: aclURI,
+				        contentType: "text/turtle",
+				        data: s,
+				        processData: false,
+				        xhrFields: {
+							withCredentials: true
+						},
+				        statusCode: {
+				            200: function(data) {
+				                console.log("200 Created");
+				            },
+				            401: function() {
+				                console.log("401 Unauthorized");
+				                notify('Error', 'Unauthorized! You need to authentify before posting.');
+				            },
+				            403: function() {
+				                console.log("403 Forbidden");
+				                notify('Error', 'Forbidden! You are not allowed to update the selected profile.');
+				            },
+				            406: function() {
+				                console.log("406 Content-type unacceptable");
+				                notify('Error', 'Content-type unacceptable.');
+				            },
+				            507: function() {
+				                console.log("507 Insufficient storage");
+				                notify('Error', 'Insuffifient storage left! Check your server storage.');
+				            },
+				        },
+				        success: function(d,s,r) {
+				            console.log('Success! ACLs are now set.');
+				        }
+		        	});
+		    	}
+			}
+		});
+	}
+	
+
+
+	async init() {
+		const webId = 'https://nmaltsev.inrupt.net/profile/card#me';
+
+		await this.populate(webId);
+
+
+		try {
+			await this.createFolder($rdf.sym(webId).site(), 'test4');	
+		} catch(e) {
+			if (e instanceof StorageException) {
+				console.log('CATCH: %s', e);
+			} else {
+				console.dir(e)
+			}
+		}
+		
+
+	}
+});
+
+Storage.prototype._MEDIA_TYPES = /^http:\/\/www\.w3\.org\/ns\/iana\/media-types\//;
+Storage.prototype._sortCallbacks = {
+	timeUp: function(n1, n2){ return n1.dateModified < n2.dateModified ? 1 : n1.dateModified > n2.dateModified ? -1 : 0;},
+	timeDown: function(n1, n2){ return n1.dateModified < n2.dateModified ? -1 : n1.dateModified > n2.dateModified ? 1 : 0;},
+}
+export {
+	Storage,
+	StorageException,
+};

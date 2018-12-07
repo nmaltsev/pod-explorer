@@ -53,7 +53,64 @@
 					</div>
 				</div>
 			</div>
+			<!-- -->
+			<hr>
 
+			<form class="layout-line profile-select-form mb1" data-co="navigation-form">
+				<button class="layout-line_cell-auto basebtn __invert-blue" type="reset" data-co="navigation-back-btn">Back</button>
+  				<div class="layout-line_cell-full profile-select-form_login-input">
+  					<input data-co="navigation-url" class="basefield">	
+  				</div>
+	  			<button class="layout-line_cell-auto basebtn __invert-blue" type="submit">Go</button>	
+			</form>
+			<div class="btnline mb1">
+				<button class="basebtn __gray" data-co="btn-create-folder">Create folder</button>
+				<button class="basebtn __gray" data-co="btn-upload">Upload files</button>
+				<button class="basebtn __gray" data-co="btn-show-info">Folder info</button>
+			</div>
+			<div class="navigation-table_wrap">
+				<table class="navigation-table">
+					<thead>
+						<tr>
+							<td class="navigation-table_th"><div >File name</div></td>
+							<td class="navigation-table_th">File type</td>
+							<td class="navigation-table_th" data-co="file-table-sort-by-modification-time" data-action="">Modification time</td>
+							<td class="navigation-table_th">Size (B)</td>
+							<td class="navigation-table_th">Controls</td>
+						</tr>
+					</thead>
+					<tbody data-co="navigation-table-body"></tbody>
+				</table>
+			</div>
+
+			<!-- Creation folder -->
+			<dialog data-co="dialog-create-folder" class="m3-dialog">
+				<form data-co="dialog-create-folder-form" class="m3-dialog-inner">
+					<label class="bookmark-form_row">
+						<div>Folder name:</div>
+						<input class="basefield" type="text" data-co="dialog-create-folder-name" required/>
+					</label>
+					<div class="btnline">
+						<button type="reset" class="basebtn __gray">Cancel</button>
+						<button type="submit" class="basebtn __blue">Create</button>
+					</div>
+				</form>
+			</dialog>
+			<!-- Configure ACL -->
+			<dialog data-co="dialog-configure" class="m3-dialog">
+				<form data-co="dialog-configure-form" class="m3-dialog-inner">
+					<select data-co="select-visibility-mode">
+						<option value="public">Public</option>
+						<option value="friends">Friends</option>
+						<option value="private">Private</option>
+					</select>
+					<div class="btnline">
+						<button type="reset" class="basebtn __gray">Close</button>
+						<button type="submit" class="basebtn __blue">Update</button>
+					</div>
+				</form>
+			</dialog>
+			<hr>
 
 			<h2>Bookmarks</h2>
 			<div class="layout-line bookmarks-block mb3">
