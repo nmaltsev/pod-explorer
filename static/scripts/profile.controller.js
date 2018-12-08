@@ -6,13 +6,10 @@ const popupUri = '/pages/popup.html';
 
 
 const CONTROLS = UITools.findNodes();
-
-
 const MODEL = new Model();
-window.model = MODEL;
 
-const _storage = new Storage();
-window._storage = _storage;
+window._model = MODEL;
+window._controls = CONTROLS;
 
 // DOM event listeners
 UITools.bindEvents(CONTROLS, {
@@ -158,66 +155,6 @@ UITools.bindEvents(CONTROLS, {
 
 
 
-	'click btnCreateFolder': function(e) {
-		CONTROLS.dialogCreateFolder.setAttribute('open', true);
-		setTimeout(function() {
-			CONTROLS.dialogCreateFolderName.focus();
-		},100);
-		
-	},
-	'submit dialogCreateFolderForm': async function(e) {
-		e.preventDefault();
-		CONTROLS.dialogCreateFolder.removeAttribute('open');
-		await _storage.createFolder(_storage.url, CONTROLS.dialogCreateFolderName.value);
-		_storage.url = _storage.url;
-	},
-	'reset dialogCreateFolderForm': function(e) {
-		if (e) e.preventDefault();
-		CONTROLS.dialogCreateFolderName.value = '';
-		CONTROLS.dialogCreateFolder.removeAttribute('open');
-	},
-
-
-	'click btnShowInfo': async function(){
-		await _storage.getACL();
-		CONTROLS.dialogConfigure.setAttribute('open', true);
-	},
-	'submit dialogConfigureForm': async function(e) {
-		e.preventDefault();
-
-		let newVisibilityMode = CONTROLS.selectVisibilityMode.value;
-		console.log('newVisibilityMode %s', newVisibilityMode)
-
-		_storage.setACL(newVisibilityMode);
-
-		CONTROLS.dialogConfigure.removeAttribute('open');
-
-	},
-	'reset dialogConfigureForm': function(e) {
-		if (e) e.preventDefault();
-		
-		CONTROLS.dialogConfigure.removeAttribute('open');
-	},
-
-
-
-	'change btnUpload': function(e) {
-		let url_s = _storage.url.replace(/\/?$/, '/');
-		
-		// Download all files
-		Promise.all(
-			Array.from(e.target.files).map(function(file){
-				return _storage
-					.upload(url_s + encodeURIComponent(file.name), file)
-					.catch(function(e){ return null; });
-			})
-		).then(function(r){
-			// Reload list:
-			_storage.url = _storage.url;
-		});
-	},
-
-
 });
 
 // Model event listeners
@@ -356,50 +293,8 @@ MODEL.bindEvents({
 	},
 });
 
-window._controls = CONTROLS;
 
-_storage.bindEvents({
-	'change:url': function(model, url, prevUrl){
-		console.log('[change:url] %s', url);
-		CONTROLS.navigationUrl.value = url;
-		model.showFolder(url);
-		model.prevUrl = prevUrl;
 
-	},
-	'change:prevUrl': function(model, url) {
-		if (url) {
-			CONTROLS.navigationBackBtn.removeAttribute('disabled');	
-		} else {
-			CONTROLS.navigationBackBtn.setAttribute('disabled', true);
-		}
-	},
-	'change:nodeList': function(model, nodes){
-		UITools.emptyNode(CONTROLS.navigationTableBody);
-		console.dir(nodes)
-
-		nodes.forEach((node, id) => {
-			if (node.type == parent) {
-
-			}
-			let $tr = UITools.cr('tr');
-			
-			$tr.insertAdjacentHTML('beforeEnd', node.type != 'parent' ? `
-				<td><span data-href="${node.uri}" data-action="navigate">${node.name}</span></td>
-				<td>${node.type}</td>
-				<td>${node.dateModified.toLocaleString()}</td>	
-				<td>${node.size}</td>
-				<td>
-					<i data-href="${node.uri}" data-action="show">[S]</i>
-					<i data-href="${node.uri}" data-action="remove">[R]</i>
-					<i data-href="${node.uri}" data-id="${id}" data-action="download">[D]</i>
-					<i data-href="${node.uri}" data-id="${id}" data-action="info">[I]</i>
-				</td>
-			`: `<td><span data-href="${node.uri}" data-action="navigate">${node.name}</span></td>
-				<td colspan="4">&nbsp;</td>`);
-			CONTROLS.navigationTableBody.appendChild($tr);	
-		});	
-	}
-})
 // Update components to match the user's login status
 solid.auth.trackSession(async (session) => {
 	const loggedIn_b = !!session;
@@ -415,14 +310,7 @@ solid.auth.trackSession(async (session) => {
 
 		CONTROLS.userLabel.textContent = session.webId;
 
-		if (1) {
-			MODEL.fetchPublicTypeIndex();	
-		}
-		if (1) {
-
-			_storage.url = $rdf.sym(session.webId).site().uri;
-			_storage.webId = session.webId;
-		}
+		MODEL.fetchPublicTypeIndex();	
 	} else {
 		CONTROLS.userLabel.textContent = '';		
 	}

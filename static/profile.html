@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Profile Viewer</title>
+	<link rel="stylesheet" type="text/css" href="styles/main.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--  -->
+</head>
+<body>
+	<div data-co="loading-block" class="layout-center-column">
+		<div class="layout-center-column_main">
+			<p>Loading...</p>
+		</div>
+	</div>
+	<div data-co="login-block" class="layout-center-column" style="display: none;">
+		<div class="layout-center-column_main">
+			<p>You are not logged in.</p>
+			<button data-co="login-btn" class="dwc_btn">login</button>
+		</div>
+	</div>
+	<div data-co="logout-block" style="display: none;"> 
+		<div class="layout-line">
+			<div class="layout-line_cell-full ta-r">
+				<span class="article-5">You are logged in as <span data-co="user-label"></span>.</span>
+			</div>
+			<div class="layout-line_cell-auto">
+				 <button data-co="logout-btn" class="dwc_btn">Log out</button>
+			</div>
+		</div>
+
+		<main class="profile-view">
+			<h1>Profile viewer</h1>
+
+			<form class="layout-line profile-select-form mb1" data-co="profile-select-form">
+	  			<label class="layout-line_cell-auto article-5" for="profile">Profile:</label>
+	  				
+  				<div class="layout-line_cell-full profile-select-form_login-input">
+  					<input data-co="profile-field" class="basefield">	
+  				</div>
+	  				
+	  			
+	  			<button data-co="view-btn" class="layout-line_cell-auto basebtn __invert-blue" type="submit">View</button>	
+			</form>
+			
+			<div data-co="viewer" class="mb4">
+				<p class="article-1 m0 mb1">Full name: <span data-co="full-name-label"></span></p>
+				<div class="layout-line">
+					<div class="layout-line_cell-auto">Friends:</div>
+					<div class="layout-line_cell-full">
+						<ul data-co="friends"></ul>
+					</div>
+				</div>
+			</div>
+			<!-- -->
+
+			<h2>Bookmarks</h2>
+			<div class="layout-line bookmarks-block mb3">
+				<div class="layout-line_cell-auto bookmarks-block_left">
+					<form data-co="bookmark-form">
+						<label class="bookmark-form_row">
+							<div>Title:</div>
+							<input class="basefield" type="text" data-co="bookmark-form-title-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Url:</div>
+							<input class="basefield" type="text" data-co="bookmark-form-url-field" required/>
+						</label>
+						<div>
+							<button type="reset" class="basebtn __gray">Reset</button>
+							<button type="submit" class="basebtn __blue">Submit</button>
+						</div>
+					</form>
+				</div>
+				<div class="layout-line_cell-full">
+					<div class="bookmarks-block_inner">
+						<ol data-co="bookmark-list"></ol>			
+					</div>
+				</div>
+			</div>
+
+			<h2>Reviews</h2>
+			<div class="layout-line bookmarks-block mb3">
+				<div class="layout-line_cell-auto bookmarks-block_left">
+					<form data-co="review-form">
+						<input type="hidden" data-co="review-form-id-field"/>
+						<label class="bookmark-form_row">
+							<div>Hotel:</div>
+							<input class="basefield" type="text" data-co="review-form-hotel-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Country:</div>
+							<input class="basefield" type="text" data-co="review-form-country-field" required/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>City:</div>
+							<input class="basefield" type="text" data-co="review-form-city-field" required/>
+						</label>
+						<hr>
+						<label class="bookmark-form_row">
+							<div>Title:</div>
+							<input class="basefield" type="text" data-co="review-form-title-field" required placeholder="Summarize your visit or highlight an interesting detail"/>
+						</label>
+						<label class="bookmark-form_row">
+							<div>Description:</div>
+							<textarea class="basefield" data-co="review-form-description-field" required placeholder="Tell people about your experience: your room, location, amenities?"></textarea> 
+						</label>
+						<div>
+							<button type="reset" class="basebtn __gray">Reset</button>
+							<button type="submit" class="basebtn __blue">Submit</button>
+						</div>
+					</form>
+				</div>
+				<div class="layout-line_cell-full">
+					<div class="bookmarks-block_inner">
+						<ol data-co="review-list"></ol>			
+					</div>
+				</div>
+			</div>	
+		</main>
+		
+	</div>
+	<script src="libs/solid-auth-client.bundle.js"></script>
+	<script src="libs/rdflib.min.js"></script>
+	<script src="scripts/profile.controller.js" type="module"></script>
+</body>
+</html>
