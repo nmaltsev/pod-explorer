@@ -48,9 +48,7 @@ UITools.bindEvents(CONTROLS, {
 				}
 				
 			} else if (action_s == 'info') {
-				_storage.getFolderInfo(href_s).then(function(){
-					
-				});
+				_storage.getFolderInfo(href_s).then(openRulesetPopup);
 			} else if (action_s == 'download') {
 				let fname_s;
 		
@@ -135,6 +133,7 @@ UITools.bindEvents(CONTROLS, {
 		).then(function(r){
 			// Reload list:
 			_storage.url = _storage.url;
+			e.target.value = null;
 		});
 	},
 
@@ -196,7 +195,13 @@ solid.auth.trackSession(async (session) => {
 
 		_storage.url = $rdf.sym(session.webId).site().uri;
 		_storage.webId = session.webId;
+		_storage.$webId = $rdf.sym(session.webId);
 	} else {
 		CONTROLS.userLabel.textContent = '';		
 	}
 });
+
+function openRulesetPopup(d) {
+	console.log('[openRulesetPopup]');
+	console.dir(d);
+}

@@ -1,4 +1,6 @@
 import * as UITools from './common.js';
+import {ACLManager, ACL_ACCESS_MODES, ACLParser, Ruleset} from './acl_manager.js';
+
 
 const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
@@ -258,11 +260,33 @@ const Storage = UITools.$decorateWatchers([
 		);
 
 		const linkHeaders = parseLinkHeader(folderResponse.headers.get('Link'));
+
 		let aclResponse = await this._downloadACLFile(folderUri + linkHeaders.acl.href);
-		
-		console.log('Link headers');
-		console.dir(linkHeaders);
-		console.dir(aclResponse);
+		// let aclResponse = await this._downloadACLFile(getParent(folderUri) + linkHeaders.acl.href);
+		let text_s = await aclResponse.text();
+		let rules;
+
+		if (aclResponse.ok) {
+			let aclParser = new ACLParser(text_s, this.webId);
+
+			rules = aclParser.getRules();
+		} else { // There is no acl file and no rulesets
+			let rule = new Ruleset('default');
+
+			rule.accessTo = [folderUri];
+			rule.agent = [this.webId];
+			rule.mode = [ACL_ACCESS_MODES.control, ACL_ACCESS_MODES.control.read, ACL_ACCESS_MODES.write];
+			rules = [rule];
+		}
+
+		let aclUri_s = folderUri + linkHeaders.acl.href;
+
+		return {
+			rules,
+			aclUri: aclUri_s			
+		};
+
+		// await this.setACL(aclUri_s, folderUri); 
 	}
 	async _downloadACLFile(aclUrl) {
 		// TODO use $rdf.fetcher
@@ -289,160 +313,33 @@ const Storage = UITools.$decorateWatchers([
 
 
 
-	async setACL(type) {
-		const uri = this.url;
-		var aclURI = uri + this._linkHeaders.acl.href;
-		console.log('aclURI `%s` this._linkHeaders.acl.href: %s', aclURI, this._linkHeaders.acl.href);
-		// frag identifier
-		var frag = this.url +'#'+basename(uri);		
+	async setACL(aclUri_s, folderUri) {
+		let acl = new ACLManager(this.webId);
 
-		var g = $rdf.graph();
-	    // add document triples
-		g.add(/*$rdf.sym('')*/'', RDF('type'), WAC('Authorization'));
-		g.add(/*$rdf.sym('')*/'', WAC('accessTo'), /*$rdf.sym('')*/'');
-		g.add(/*$rdf.sym('')*/'', WAC('accessTo'), $rdf.sym(uri));
-		g.add(/*$rdf.sym('')*/'',	WAC('agent'), $rdf.sym(this.webId));
-		g.add(/*$rdf.sym('')*/'',	WAC('mode'), WAC('Read'));
-		g.add(/*$rdf.sym('')*/'',	WAC('mode'), WAC('Write'));
+		acl.addRule('owner')
+			.setResource(folderUri)
+			.forMe()
+			.accessMode(ACL_ACCESS_MODES.read, ACL_ACCESS_MODES.write, ACL_ACCESS_MODES.control);
+		acl.addRule('public')
+			.setResource(folderUri)
+			.forNotAuthorized()
+			.accessMode(ACL_ACCESS_MODES.read);
 
-
-		// add post triples
-		g.add($rdf.sym(frag), RDF('type'), WAC('Authorization'));
-		g.add($rdf.sym(frag), WAC('accessTo'), $rdf.sym(uri));
-		// public visibility
-		if (type == 'public' || type == 'friends') {
-			g.add($rdf.sym(frag), WAC('agent'), $rdf.sym(this.webId));
-			g.add($rdf.sym(frag), WAC('agentClass'), FOAF('Agent'));
-			g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
-		} else if (type == 'private') {
-			// private visibility
-			g.add($rdf.sym(frag), WAC('agent'), $rdf.sym(this.webId));
-			g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
-			g.add($rdf.sym(frag), WAC('mode'), WAC('Write'));
-		}
-		// The predicate defaultForNew can only be used in containers ACLs.
-		// if (defaultForNew && uri.substring(uri.length - 1) == '/')
-		g.add($rdf.sym(frag), WAC('defaultForNew'), $rdf.sym(uri));
-
-		var s = new $rdf.Serializer(g).toN3(g);
+		var requestBody = acl.serialize();
+		console.log('aclserial');
+		console.dir(requestBody);
 
 		const response = await solid.auth.fetch(
-			aclURI, 
+			aclUri_s, 
 			{
 				method: 'PUT',
 				headers: { 
 					'Content-Type': 'text/turtle',
 				},
 				credentials: 'include',
-				body: s
+				body: requestBody
 			}
 		);
-
-		console.log('S: %s');
-		console.dir(s);
-
-		return;
-
-		// get the acl URI first
-		$.ajax({
-			type: "HEAD",
-			url: uri,
-			xhrFields: {
-				withCredentials: true
-			},
-			success: function(d,s,r) {
-	            // acl URI
-	           	var acl = parseLinkHeader(r.getResponseHeader('Link'));
-				var aclURI = acl['acl']['href'];
-				// frag identifier
-				var frag = '#'+basename(uri);
-
-			    var g = $rdf.graph();
-			    // add document triples
-				g.add($rdf.sym(''), RDF('type'), WAC('Authorization'));
-				g.add($rdf.sym(''), WAC('accessTo'), $rdf.sym(''));
-				g.add($rdf.sym(''), WAC('accessTo'), $rdf.sym(uri));
-				g.add($rdf.sym(''),	WAC('agent'), $rdf.sym($scope.me.webid));
-				g.add($rdf.sym(''),	WAC('mode'), WAC('Read'));
-				g.add($rdf.sym(''),	WAC('mode'), WAC('Write'));
-
-				// add post triples
-				g.add($rdf.sym(frag), RDF('type'), WAC('Authorization'));
-				g.add($rdf.sym(frag), WAC('accessTo'), $rdf.sym(uri));
-				// public visibility
-				if (type == 'public' || type == 'friends') {
-					g.add($rdf.sym(frag), WAC('agentClass'), FOAF('Agent'));
-					g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
-				} else if (type == 'private') {
-					// private visibility
-					g.add($rdf.sym(frag), WAC('agent'), $rdf.sym($scope.me.webid));
-					g.add($rdf.sym(frag), WAC('mode'), WAC('Read'));
-					g.add($rdf.sym(frag), WAC('mode'), WAC('Write'));
-				}
-				if (defaultForNew && uri.substring(uri.length - 1) == '/')
-					g.add($rdf.sym(frag), WAC('defaultForNew'), $rdf.sym(uri));
-
-				var s = new $rdf.Serializer(g).toN3(g);
-
-				if (s && aclURI) {
-					$.ajax({
-				        type: "PUT", // overwrite just in case
-				        url: aclURI,
-				        contentType: "text/turtle",
-				        data: s,
-				        processData: false,
-				        xhrFields: {
-							withCredentials: true
-						},
-				        statusCode: {
-				            200: function(data) {
-				                console.log("200 Created");
-				            },
-				            401: function() {
-				                console.log("401 Unauthorized");
-				                notify('Error', 'Unauthorized! You need to authentify before posting.');
-				            },
-				            403: function() {
-				                console.log("403 Forbidden");
-				                notify('Error', 'Forbidden! You are not allowed to update the selected profile.');
-				            },
-				            406: function() {
-				                console.log("406 Content-type unacceptable");
-				                notify('Error', 'Content-type unacceptable.');
-				            },
-				            507: function() {
-				                console.log("507 Insufficient storage");
-				                notify('Error', 'Insuffifient storage left! Check your server storage.');
-				            },
-				        },
-				        success: function(d,s,r) {
-				            console.log('Success! ACLs are now set.');
-				        }
-		        	});
-		    	}
-			}
-		});
-	}
-	
-
-
-	async init() {
-		const webId = 'https://nmaltsev.inrupt.net/profile/card#me';
-
-		await this.populate(webId);
-
-
-		try {
-			await this.createFolder($rdf.sym(webId).site(), 'test4');	
-		} catch(e) {
-			if (e instanceof StorageException) {
-				console.log('CATCH: %s', e);
-			} else {
-				console.dir(e)
-			}
-		}
-		
-
 	}
 });
 
