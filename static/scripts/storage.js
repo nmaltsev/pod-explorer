@@ -1,9 +1,11 @@
 import * as UITools from './common.js';
 
 const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
 const DCT = $rdf.Namespace("http://purl.org/dc/terms/");
 const SIOC = $rdf.Namespace("http://rdfs.org/sioc/ns#");
-const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+
 const SPACE = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
 const ACL = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
 var LDPX = $rdf.Namespace("http://ns.rww.io/ldpx#");
@@ -11,7 +13,7 @@ const LDP = $rdf.Namespace('http://www.w3.org/ns/ldp#')
 const NS = $rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 const STAT = $rdf.Namespace('http://www.w3.org/ns/posix/stat#')
 const TERMS = $rdf.Namespace('http://purl.org/dc/terms/')
-const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+
 
 function parseLinkHeader(header) {
    	var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
@@ -225,6 +227,21 @@ const Storage = UITools.$decorateWatchers([
 			method: 'DELETE'
 		});
 	}
+	async downloadBlob(url_s) {
+		let response = await solid.auth.fetch(url_s,{ 
+			method: 'GET' 
+		});
+		
+		let blob = await response.blob();
+
+		return blob;	
+	}
+	async upload(url_s, body) {
+		return await solid.auth.fetch(url_s,{ 
+			method: 'PUT',
+			body 
+		});
+	}
 
 	//-------------------------------------------------
 	// Get ACL data of not downloaded folder
@@ -269,6 +286,8 @@ const Storage = UITools.$decorateWatchers([
 		let aclResponse = await this._downloadACLFile(uri + aclURI);
 		console.dir(aclResponse);
 	}
+
+
 
 	async setACL(type) {
 		const uri = this.url;

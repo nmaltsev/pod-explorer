@@ -109,6 +109,7 @@ UITools.bindEvents(CONTROLS, {
 		
 		if (action_s = e.target.dataset.action) {
 			let href_s = e.target.dataset.href;
+			let id_n = parseInt(e.target.dataset.id);
 
 			if (action_s == 'navigate') {
 				_storage.url = href_s;	
@@ -129,10 +130,19 @@ UITools.bindEvents(CONTROLS, {
 				_storage.getFolderInfo(href_s).then(function(){
 					
 				});
-				
-				
+			} else if (action_s == 'download') {
+				let fname_s;
+		
+				if (id_n != undefined) {
+					fname_s = _storage.nodeList[id_n] && _storage.nodeList[id_n].name.replace(/\//g, '');
+				} else {
+					fname_s = 'noname';
+				}
+
+				_storage.downloadBlob(href_s).then(function(blob){
+					UITools.downloadFile(fname_s, blob);
+				});
 			}
-			
 		}
 	},
 	'reset navigationForm': function(e) {
@@ -190,11 +200,22 @@ UITools.bindEvents(CONTROLS, {
 	},
 
 
-	'click btnUpload': function() {
-		// TODO
-	},
-	
 
+	'change btnUpload': function(e) {
+		let url_s = _storage.url.replace(/\/?$/, '/');
+		
+		// Download all files
+		Promise.all(
+			Array.from(e.target.files).map(function(file){
+				return _storage
+					.upload(url_s + encodeURIComponent(file.name), file)
+					.catch(function(e){ return null; });
+			})
+		).then(function(r){
+			// Reload list:
+			_storage.url = _storage.url;
+		});
+	},
 
 
 });
@@ -356,7 +377,7 @@ _storage.bindEvents({
 		UITools.emptyNode(CONTROLS.navigationTableBody);
 		console.dir(nodes)
 
-		nodes.forEach((node) => {
+		nodes.forEach((node, id) => {
 			if (node.type == parent) {
 
 			}
@@ -370,8 +391,8 @@ _storage.bindEvents({
 				<td>
 					<i data-href="${node.uri}" data-action="show">[S]</i>
 					<i data-href="${node.uri}" data-action="remove">[R]</i>
-					<i data-href="${node.uri}" data-action="download">[D]</i>
-					<i data-href="${node.uri}" data-action="info">[I]</i>
+					<i data-href="${node.uri}" data-id="${id}" data-action="download">[D]</i>
+					<i data-href="${node.uri}" data-id="${id}" data-action="info">[I]</i>
 				</td>
 			`: `<td><span data-href="${node.uri}" data-action="navigate">${node.name}</span></td>
 				<td colspan="4">&nbsp;</td>`);
@@ -394,7 +415,7 @@ solid.auth.trackSession(async (session) => {
 
 		CONTROLS.userLabel.textContent = session.webId;
 
-		if (0) {
+		if (1) {
 			MODEL.fetchPublicTypeIndex();	
 		}
 		if (1) {

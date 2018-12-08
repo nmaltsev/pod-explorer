@@ -11,6 +11,9 @@ rdf.js source https://searchcode.com/codesearch/view/7502380/
 ACL
   https://github.com/solid/solid-spec/blob/master/acl-inheritance.md
   https://www.w3.org/wiki/WebAccessControl
+  https://github.com/solid/web-access-control-spec
+
+  https://melvincarvalho.com/#me
 
 ```  
 const me = store.sym('https://example.com/alice/card#me');

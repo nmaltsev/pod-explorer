@@ -171,6 +171,18 @@ Events.prototype.bindEvents = function(eventMap_c) {
 	}
 }
 
+function downloadFile(fname_s, blob) {
+	let link = document.createElement('a');
+
+	link.href = window.URL.createObjectURL(blob);
+	link.target = '_blank';
+	link.download = fname_s;
+	document.body.appendChild(link)
+	
+	link.click()
+	link.remove()
+}
+
 export {
 	$decorateWatchers,
 	bindEvents,
@@ -178,5 +190,6 @@ export {
 	toggle,
 	cr,
 	emptyNode,
-	Events		
+	Events,
+	downloadFile,
 };

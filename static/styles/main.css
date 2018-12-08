@@ -253,3 +253,14 @@ a:hover {
 	background-color: #fff;
 	text-align: left;
 }
+
+
+
+.sc_invisible {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    z-index: -1;
+    float: left;
+}
