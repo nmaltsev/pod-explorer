@@ -183,6 +183,18 @@ function downloadFile(fname_s, blob) {
 	link.remove()
 }
 
+function pasteInBuffer(text_s) {
+	navigator.permissions
+		.query({name: 'clipboard-write'})
+		.then((result) => {
+			if (result.state != 'granted' && result.state != 'prompt') return;
+			
+			navigator.clipboard
+				.writeText(text_s)
+				.catch(function(e) {console.log('Error', e);});
+		});
+}
+
 export {
 	$decorateWatchers,
 	bindEvents,
@@ -192,4 +204,5 @@ export {
 	emptyNode,
 	Events,
 	downloadFile,
+	pasteInBuffer
 };

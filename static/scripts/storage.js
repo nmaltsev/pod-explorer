@@ -333,6 +333,7 @@ const Storage = UITools.$decorateWatchers([
 			aclUri_s, 
 			{
 				method: 'PUT',
+				// method: 'PATCH',
 				headers: { 
 					'Content-Type': 'text/turtle',
 				},
@@ -369,6 +370,20 @@ const Storage = UITools.$decorateWatchers([
 				body: requestBody
 			}
 		);
+	}
+
+	getMetaInformation(resourceUrl) {
+		// TODO
+		solid.auth.fetch(
+			'https://nmaltsev.inrupt.net/.meta', 
+			{
+			method: 'GET',
+			headers: { 
+			'Content-Type': 'text/turtle',
+			},
+			credentials: 'include',
+			}
+		);      
 	}
 });
 

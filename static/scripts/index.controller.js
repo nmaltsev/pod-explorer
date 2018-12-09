@@ -40,7 +40,6 @@ UITools.bindEvents(CONTROLS, {
 				_storage.getContent(href_s).then((data) => {
 					console.log('Content:\n %s', data.text);
 				});
-				
 			} else if (action_s == 'remove') {
 				if (confirm('Are you sure?')) {
 					_storage.removeEntry(href_s).then(function(){
@@ -48,7 +47,6 @@ UITools.bindEvents(CONTROLS, {
 					});
 					
 				}
-				
 			} else if (action_s == 'info') { 
 				_storage.getACLInfo(href_s).then(function(d){
 					openRulesetPopup(d);
@@ -65,6 +63,8 @@ UITools.bindEvents(CONTROLS, {
 				_storage.downloadBlob(href_s).then(function(blob){
 					UITools.downloadFile(fname_s, blob);
 				});
+			} else if (action_s == 'link') {
+				UITools.pasteInBuffer(href_s);
 			}
 		}
 	},
@@ -159,10 +159,11 @@ _storage.bindEvents({
 				<td>${node.dateModified.toLocaleString()}</td>	
 				<td>${node.size}</td>
 				<td>
-					<i data-href="${node.uri}" data-action="show">[S]</i>
-					<i data-href="${node.uri}" data-action="remove">[R]</i>
-					<i data-href="${node.uri}" data-id="${id}" data-action="download">[D]</i>
-					<i data-href="${node.uri}" data-id="${id}" data-action="info">[I]</i>
+					<i data-href="${node.uri}" data-action="show" title="Show">[S]</i>
+					<i data-href="${node.uri}" data-action="remove" title="Remove">[R]</i>
+					<i data-href="${node.uri}" data-id="${id}" data-action="download" title="Download">[D]</i>
+					<i data-href="${node.uri}" data-id="${id}" data-action="info" title="ACL">[I]</i>
+					<i data-href="${node.uri}" data-action="link" title="Get link">[L]</i>
 				</td>
 			`: `<td><span data-href="${node.uri}" data-action="navigate">${node.name}</span></td>
 				<td colspan="4">&nbsp;</td>`);
