@@ -1,5 +1,5 @@
 import * as UITools from './common.js';
-import {ACLManager, ACL_ACCESS_MODES, ACLParser, Ruleset} from './acl_manager.js';
+import {ACLManager, ACL_ACCESS_MODES, ACLParser, Ruleset, createSafeRuleset} from './acl_manager.js';
 
 
 const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
@@ -63,11 +63,13 @@ function basename(path_s) {
     return a[a.length - 1];
 }
 function getParent(url_s) {
-	let list = url_s.replace(/(?<!\:)\/+/g,'/').split('/');
+	let list = url_s.split('/');
 	let pos = list.length;
 
 	if (pos > 3 && !list[pos -1] ) {pos--;}
 	if (pos > 3) {pos--;}
+	if (pos > 3 && !list[pos -1] ) {pos--;}
+	console.dir(list)	
 
 	return list.length > 4 ? list.slice(0, pos).join('/') + '/' : null;
 }
@@ -247,7 +249,7 @@ const Storage = UITools.$decorateWatchers([
 
 	//-------------------------------------------------
 	// Get ACL data of not downloaded folder
-	async getFolderInfo(folderUri) {
+	async getACLInfo(folderUri) {
 		const folderResponse = await solid.auth.fetch(
 			folderUri, 
 			{
@@ -260,34 +262,47 @@ const Storage = UITools.$decorateWatchers([
 		);
 
 		const linkHeaders = parseLinkHeader(folderResponse.headers.get('Link'));
+		// linkHeaders.type.href values:
+		// file resource - http://www.w3.org/ns/ldp#Resource
+		// folder resource -http://www.w3.org/ns/ldp#BasicContainer
+		let aclUri_s = (linkHeaders.type.href == 'http://www.w3.org/ns/ldp#BasicContainer' ? folderUri : getParent(folderUri)) + linkHeaders.acl.href;
 
-		let aclResponse = await this._downloadACLFile(folderUri + linkHeaders.acl.href);
+		console.log('getACLInfo folderUri: %s', folderUri)
+		console.dir(linkHeaders)
+
+		let aclResponse = await this._downloadACLFile(aclUri_s);
+
+		if (aclResponse.status == 403) {
+			// throw new Exception('forbidden');
+		}
 		// let aclResponse = await this._downloadACLFile(getParent(folderUri) + linkHeaders.acl.href);
 		let text_s = await aclResponse.text();
-		let rules;
+		let rulesets;
+
+		console.warn('aclResponse');
+		console.dir(aclResponse);
 
 		if (aclResponse.ok) {
 			let aclParser = new ACLParser(text_s, this.webId);
 
-			rules = aclParser.getRules();
+			rulesets = aclParser.getRules();
 		} else { // There is no acl file and no rulesets
-			let rule = new Ruleset('default');
-
-			rule.accessTo = [folderUri];
-			rule.agent = [this.webId];
-			rule.mode = [ACL_ACCESS_MODES.control, ACL_ACCESS_MODES.control.read, ACL_ACCESS_MODES.write];
-			rules = [rule];
+			// rulesets = [createSafeRuleset(folderUri, this.webId)];
+			rulesets = [];
 		}
 
-		let aclUri_s = folderUri + linkHeaders.acl.href;
+		
 
 		return {
-			rules,
-			aclUri: aclUri_s			
+			rulesets,
+			aclUri: aclUri_s,
+			uri: folderUri			
 		};
 
 		// await this.setACL(aclUri_s, folderUri); 
 	}
+
+
 	async _downloadACLFile(aclUrl) {
 		// TODO use $rdf.fetcher
 		return await solid.auth.fetch(
@@ -302,16 +317,30 @@ const Storage = UITools.$decorateWatchers([
 		);		
 	}
 
-	// Get ACL data of downloaded folder (currentfolder)
-	async getACL () {
-		const uri = this.url;
-		var aclURI = this._linkHeaders.acl.href;
+	async updateACL(aclUri_s, rulesets) {
+		console.log('updateACL')
+		console.dir(rulesets);
 
-		let aclResponse = await this._downloadACLFile(uri + aclURI);
-		console.dir(aclResponse);
+		let acl = new ACLManager(this.webId);
+		acl.import(rulesets);
+
+		let requestBody = acl.serialize();
+		
+		console.log('[requestBody]');
+		console.dir(requestBody);
+
+		const response = await solid.auth.fetch(
+			aclUri_s, 
+			{
+				method: 'PUT',
+				headers: { 
+					'Content-Type': 'text/turtle',
+				},
+				credentials: 'include',
+				body: requestBody
+			}
+		);
 	}
-
-
 
 	async setACL(aclUri_s, folderUri) {
 		let acl = new ACLManager(this.webId);
@@ -326,7 +355,7 @@ const Storage = UITools.$decorateWatchers([
 			.accessMode(ACL_ACCESS_MODES.read);
 
 		var requestBody = acl.serialize();
-		console.log('aclserial');
+		console.log('[setACL] aclUri_s %s, folderUri %s', aclUri_s, folderUri);
 		console.dir(requestBody);
 
 		const response = await solid.auth.fetch(

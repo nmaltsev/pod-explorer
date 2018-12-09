@@ -62,6 +62,7 @@
 
 			<!-- Creation folder -->
 			<dialog data-co="dialog-create-folder" class="m3-dialog">
+				<div class="m3-dialog-scroller">
 				<form data-co="dialog-create-folder-form" class="m3-dialog-inner">
 					<label class="bookmark-form_row">
 						<div>Folder name:</div>
@@ -72,15 +73,17 @@
 						<button type="submit" class="basebtn __blue">Create</button>
 					</div>
 				</form>
+				</div>
 			</dialog>
 			<!-- Configure ACL -->
 			<dialog data-co="dialog-configure" class="m3-dialog">
 				<form data-co="dialog-configure-form" class="m3-dialog-inner">
-					<select data-co="select-visibility-mode">
+					<div class="" data-co="ruleset-list"></div>
+					<!-- <select data-co="select-visibility-mode">
 						<option value="public">Public</option>
 						<option value="friends">Friends</option>
 						<option value="private">Private</option>
-					</select>
+					</select> -->
 					<div class="btnline">
 						<button type="reset" class="basebtn __gray">Close</button>
 						<button type="submit" class="basebtn __blue">Update</button>
@@ -89,6 +92,7 @@
 			</dialog>
 		</main>
 	</div>
+	<div id="node-heap"></div>
 	<script src="libs/solid-auth-client.bundle.js"></script>
 	<script src="libs/rdflib.min.js"></script>
 	<script src="scripts/index.controller.js" type="module"></script>
