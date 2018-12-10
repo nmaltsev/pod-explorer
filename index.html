@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Profile Viewer</title>
+	<title>File manager</title>
 	<link rel="stylesheet" type="text/css" href="styles/main.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!--  -->
@@ -20,7 +20,7 @@
 		</div>
 	</div>
 	<div data-co="logout-block" style="display: none;"> 
-		<div class="layout-line">
+		<div class="layout-line mb4">
 			<div class="layout-line_cell-full ta-r">
 				<span class="article-5">You are logged in as <span data-co="user-label"></span>.</span>
 			</div>
@@ -30,99 +30,71 @@
 		</div>
 
 		<main class="profile-view">
-			<h1>Profile viewer</h1>
-
-			<form class="layout-line profile-select-form mb1" data-co="profile-select-form">
-	  			<label class="layout-line_cell-auto article-5" for="profile">Profile:</label>
-	  				
+			<form class="layout-line profile-select-form mb1" data-co="navigation-form">
+				<button class="layout-line_cell-auto basebtn __invert-blue" type="reset" data-co="navigation-back-btn">Back</button>
   				<div class="layout-line_cell-full profile-select-form_login-input">
-  					<input data-co="profile-field" class="basefield">	
+  					<input data-co="navigation-url" class="basefield">	
   				</div>
-	  				
-	  			
-	  			<button data-co="view-btn" class="layout-line_cell-auto basebtn __invert-blue" type="submit">View</button>	
+	  			<button class="layout-line_cell-auto basebtn __invert-blue" type="submit">Go</button>	
 			</form>
-
-			
-			<div data-co="viewer" class="mb4">
-				<p class="article-1 m0 mb1">Full name: <span data-co="full-name-label"></span></p>
-				<div class="layout-line">
-					<div class="layout-line_cell-auto">Friends:</div>
-					<div class="layout-line_cell-full">
-						<ul data-co="friends"></ul>
-					</div>
-				</div>
+			<div class="btnline mb1">
+				<button class="basebtn __gray" data-co="btn-create-folder">Create folder</button>
+				<!-- <button class="basebtn __gray" data-co="btn-upload">Upload files</button> -->
+				<button class="basebtn __gray" data-co="btn-show-info">Folder info</button>
+				<label class="basebtn __gray">
+					<input type="file" data-co="btn-upload" class="sc_invisible"><span>Upload files</span>
+				</label>
+			</div>
+			<div class="navigation-table_wrap">
+				<table class="navigation-table">
+					<thead>
+						<tr>
+							<td class="navigation-table_th"><div >File name</div></td>
+							<td class="navigation-table_th">File type</td>
+							<td class="navigation-table_th" data-co="file-table-sort-by-modification-time" data-action="">Modification time</td>
+							<td class="navigation-table_th">Size (B)</td>
+							<td class="navigation-table_th">Controls</td>
+						</tr>
+					</thead>
+					<tbody data-co="navigation-table-body"></tbody>
+				</table>
 			</div>
 
-
-			<h2>Bookmarks</h2>
-			<div class="layout-line bookmarks-block mb3">
-				<div class="layout-line_cell-auto bookmarks-block_left">
-					<form data-co="bookmark-form">
-						<label class="bookmark-form_row">
-							<div>Title:</div>
-							<input class="basefield" type="text" data-co="bookmark-form-title-field" required/>
-						</label>
-						<label class="bookmark-form_row">
-							<div>Url:</div>
-							<input class="basefield" type="text" data-co="bookmark-form-url-field" required/>
-						</label>
-						<div>
-							<button type="reset" class="basebtn __gray">Reset</button>
-							<button type="submit" class="basebtn __blue">Submit</button>
-						</div>
-					</form>
-				</div>
-				<div class="layout-line_cell-full">
-					<div class="bookmarks-block_inner">
-						<ol data-co="bookmark-list"></ol>			
+			<!-- Creation folder -->
+			<dialog data-co="dialog-create-folder" class="m3-dialog">
+				<div class="m3-dialog-scroller">
+				<form data-co="dialog-create-folder-form" class="m3-dialog-inner">
+					<label class="bookmark-form_row">
+						<div>Folder name:</div>
+						<input class="basefield" type="text" data-co="dialog-create-folder-name" required/>
+					</label>
+					<div class="btnline">
+						<button type="reset" class="basebtn __gray">Cancel</button>
+						<button type="submit" class="basebtn __blue">Create</button>
 					</div>
+				</form>
 				</div>
-			</div>
-
-			<h2>Reviews</h2>
-			<div class="layout-line bookmarks-block mb3">
-				<div class="layout-line_cell-auto bookmarks-block_left">
-					<form data-co="review-form">
-						<input type="hidden" data-co="review-form-id-field"/>
-						<label class="bookmark-form_row">
-							<div>Hotel:</div>
-							<input class="basefield" type="text" data-co="review-form-hotel-field" required/>
-						</label>
-						<label class="bookmark-form_row">
-							<div>Country:</div>
-							<input class="basefield" type="text" data-co="review-form-country-field" required/>
-						</label>
-						<label class="bookmark-form_row">
-							<div>City:</div>
-							<input class="basefield" type="text" data-co="review-form-city-field" required/>
-						</label>
-						<hr>
-						<label class="bookmark-form_row">
-							<div>Title:</div>
-							<input class="basefield" type="text" data-co="review-form-title-field" required placeholder="Summarize your visit or highlight an interesting detail"/>
-						</label>
-						<label class="bookmark-form_row">
-							<div>Description:</div>
-							<textarea class="basefield" data-co="review-form-description-field" required placeholder="Tell people about your experience: your room, location, amenities?"></textarea> 
-						</label>
-						<div>
-							<button type="reset" class="basebtn __gray">Reset</button>
-							<button type="submit" class="basebtn __blue">Submit</button>
-						</div>
-					</form>
-				</div>
-				<div class="layout-line_cell-full">
-					<div class="bookmarks-block_inner">
-						<ol data-co="review-list"></ol>			
+			</dialog>
+			<!-- Configure ACL -->
+			<dialog data-co="dialog-configure" class="m3-dialog">
+				<form data-co="dialog-configure-form" class="m3-dialog-inner">
+					<div class="" data-co="ruleset-list"></div>
+					<!-- <select data-co="select-visibility-mode">
+						<option value="public">Public</option>
+						<option value="friends">Friends</option>
+						<option value="private">Private</option>
+					</select> -->
+					<div class="btnline">
+						<button type="reset" class="basebtn __gray">Close</button>
+						<button type="submit" class="basebtn __blue">Update</button>
 					</div>
-				</div>
-			</div>	
+				</form>
+			</dialog>
 		</main>
-		
 	</div>
+	<div id="node-heap"></div>
 	<script src="libs/solid-auth-client.bundle.js"></script>
 	<script src="libs/rdflib.min.js"></script>
-	<script src="scripts/main.js" type="module"></script>
+	<script src="scripts/index.controller.js" type="module"></script>
 </body>
 </html>

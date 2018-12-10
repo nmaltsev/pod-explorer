@@ -1,14 +1,15 @@
 import * as UITools from './common.js';
 import {Model, Hotel} from './model.js';
+import {Storage, StorageException} from './storage.js';
 
-const popupUri = '/pages/popup.html';
+const popupUri = 'pages/popup.html';
 
 
 const CONTROLS = UITools.findNodes();
-
-
 const MODEL = new Model();
-window.model = MODEL;
+
+window._model = MODEL;
+window._controls = CONTROLS;
 
 // DOM event listeners
 UITools.bindEvents(CONTROLS, {
@@ -96,6 +97,64 @@ UITools.bindEvents(CONTROLS, {
 			// CONTROLS.reviewFormDescriptionField.value = '';
 		}
 	},
+	'submit navigationForm': function(e) {
+		e.preventDefault();
+		_storage.url = CONTROLS.navigationUrl.value;
+	},
+	'click navigationTableBody': function(e){
+		let action_s;
+		
+		if (action_s = e.target.dataset.action) {
+			let href_s = e.target.dataset.href;
+			let id_n = parseInt(e.target.dataset.id);
+
+			if (action_s == 'navigate') {
+				_storage.url = href_s;	
+			} else if (action_s == 'show'){
+				_storage.getContent(href_s).then((data) => {
+					console.log('Content:\n %s', data.text);
+				});
+				
+			} else if (action_s == 'remove') {
+				if (confirm('Are you sure?')) {
+					_storage.removeEntry(href_s).then(function(){
+						_storage.url = _storage.url;
+					});
+					
+				}
+				
+			} else if (action_s == 'info') {
+				_storage.getFolderInfo(href_s).then(function(){
+					
+				});
+			} else if (action_s == 'download') {
+				let fname_s;
+		
+				if (id_n != undefined) {
+					fname_s = _storage.nodeList[id_n] && _storage.nodeList[id_n].name.replace(/\//g, '');
+				} else {
+					fname_s = 'noname';
+				}
+
+				_storage.downloadBlob(href_s).then(function(blob){
+					UITools.downloadFile(fname_s, blob);
+				});
+			}
+		}
+	},
+	'reset navigationForm': function(e) {
+		e.preventDefault();
+		if (_storage.prevUrl) {
+			_storage.url = _storage.prevUrl;
+		}
+		// _storage.url = CONTROLS.navigationUrl.value;
+	},
+	'click fileTableSortByModificationTime': function(e) {
+		_storage.sort(_storage.sortBy == 'timeUp' ? 'timeDown' : 'timeUp');
+	},
+
+
+
 });
 
 // Model event listeners
@@ -234,6 +293,8 @@ MODEL.bindEvents({
 	},
 });
 
+
+
 // Update components to match the user's login status
 solid.auth.trackSession(async (session) => {
 	const loggedIn_b = !!session;
@@ -249,7 +310,7 @@ solid.auth.trackSession(async (session) => {
 
 		CONTROLS.userLabel.textContent = session.webId;
 
-		MODEL.fetchPublicTypeIndex();
+		MODEL.fetchPublicTypeIndex();	
 	} else {
 		CONTROLS.userLabel.textContent = '';		
 	}

@@ -171,6 +171,30 @@ Events.prototype.bindEvents = function(eventMap_c) {
 	}
 }
 
+function downloadFile(fname_s, blob) {
+	let link = document.createElement('a');
+
+	link.href = window.URL.createObjectURL(blob);
+	link.target = '_blank';
+	link.download = fname_s;
+	document.body.appendChild(link)
+	
+	link.click()
+	link.remove()
+}
+
+function pasteInBuffer(text_s) {
+	navigator.permissions
+		.query({name: 'clipboard-write'})
+		.then((result) => {
+			if (result.state != 'granted' && result.state != 'prompt') return;
+			
+			navigator.clipboard
+				.writeText(text_s)
+				.catch(function(e) {console.log('Error', e);});
+		});
+}
+
 export {
 	$decorateWatchers,
 	bindEvents,
@@ -178,5 +202,7 @@ export {
 	toggle,
 	cr,
 	emptyNode,
-	Events		
+	Events,
+	downloadFile,
+	pasteInBuffer
 };

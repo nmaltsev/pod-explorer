@@ -83,6 +83,8 @@ const Model = UITools.$decorateWatchers([
 		// Load the person's data into the store
 		await this.fetcher.load(this.publicTypeIndex, {force: isForce});
 
+		if (0) return;
+
 		// Display bookmarks details
 		this.bookmarkTypeRegistration = this.fetcher.store.any(
 			null, 
@@ -397,9 +399,10 @@ const Model = UITools.$decorateWatchers([
 	}
  
 	async delReview(id_s, subject,r) {
-		console.log('DelReview');
-		console.dir(r);
-		console.dir()
+		console.log('DelRevie');
+		console.dir(arguments);
+		console.dir(subject);
+		console.dir(subject.toNT());
 
 		// var query = "DELETE DATA { " + oldS.toNT() + " }";
   //       if (oldS['why'] && oldS['why']['value'].length > 0) {
