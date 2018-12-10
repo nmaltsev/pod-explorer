@@ -28,32 +28,40 @@ UITools.bindEvents(CONTROLS, {
 		_storage.url = CONTROLS.navigationUrl.value;
 	},
 	'click navigationTableBody': function(e){
-		let action_s;
-		
-		if (action_s = e.target.dataset.action) {
-			let href_s = e.target.dataset.href;
-			let nodeData = _storage.nodeList[parseInt(e.target.dataset.id)];
+		let action_s = e.target.dataset.action;
 
-			if (action_s == 'navigate') {
-				_storage.url = href_s;	
-			} else if (action_s == 'show'){
+		if (!action_s) return;
+		
+		let $tr = e.target.closest('tr');
+
+		if (!$tr) return;
+
+		let href_s = $tr.dataset.href;
+		let nodeData = _storage.nodeList[parseInt($tr.dataset.id)];
+
+		switch (action_s) {
+			case 'navigate': 
+				_storage.url = href_s; break;
+			case 'show': 
 				_storage.getContent(href_s).then((data) => {
 					console.log('Content:\n %s', data.text);
 				});
-			} else if (action_s == 'remove') {
+				break;
+			case 'remove': 
 				if (confirm('Are you sure?')) {
 					_storage.removeEntry(href_s).then(function(){
 						_storage.url = _storage.url;
 					});
-					
 				}
-			} else if (action_s == 'info') { 
+				break;
+			case 'info': 
 				_storage.getACLInfo(href_s).then(function(d){
 					openRulesetPopup(d);
 				});
-			} else if (action_s == 'download') {
+				break;
+			case 'download': 
 				let fname_s;
-		
+	
 				if (nodeData != undefined) {
 					fname_s = nodeData && nodeData.name.replace(/\//g, '');
 				} else {
@@ -63,9 +71,12 @@ UITools.bindEvents(CONTROLS, {
 				_storage.downloadBlob(href_s).then(function(blob){
 					UITools.downloadFile(fname_s, blob);
 				});
-			} else if (action_s == 'link') {
+				break;
+			case 'link': 
 				UITools.pasteInBuffer(href_s);
-			}
+				break;
+			// case '': break;
+		
 		}
 	},
 	'reset navigationForm': function(e) {
@@ -152,6 +163,8 @@ _storage.bindEvents({
 
 			}
 			let $tr = UITools.cr('tr');
+			$tr.dataset.id = id;
+			$tr.dataset.href = node.uri;
 			
 			$tr.insertAdjacentHTML('beforeEnd', node.type != 'parent' ? `
 				<td><span data-href="${node.uri}" data-action="navigate">${node.name}</span></td>
@@ -159,11 +172,11 @@ _storage.bindEvents({
 				<td>${node.dateModified.toLocaleString()}</td>	
 				<td>${node.size}</td>
 				<td>
-					<i data-href="${node.uri}" data-action="show" title="Show">[S]</i>
-					<i data-href="${node.uri}" data-action="remove" title="Remove">[R]</i>
-					<i data-href="${node.uri}" data-id="${id}" data-action="download" title="Download">[D]</i>
-					<i data-href="${node.uri}" data-id="${id}" data-action="info" title="ACL">[I]</i>
-					<i data-href="${node.uri}" data-action="link" title="Get link">[L]</i>
+					<i data-action="show" title="Show">[S]</i>
+					<i data-action="remove" title="Remove">[R]</i>
+					<i data-action="download" title="Download">[D]</i>
+					<i data-action="info" title="ACL">[I]</i>
+					<i data-action="link" title="Get link">[L]</i>
 				</td>
 			`: `<td><span data-href="${node.uri}" data-action="navigate">${node.name}</span></td>
 				<td colspan="4">&nbsp;</td>`);

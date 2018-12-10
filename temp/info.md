@@ -33,6 +33,8 @@ You can make a new statement using:
 ```let st = new $rdf.Statement(me, FOAF(‘name’), “Joe Bloggs”, me.doc());```
 
 
+minergate-cli --user hash.eater@gmail.com --xmr 2
+
 model.fetcher.load(model.fetcher.store.sym('https://nmaltsev.inrupt.net/public/bookmarks.ttl').doc())
 
 
@@ -198,3 +200,12 @@ var reviewStore = model.fetcher.store.statementsMatching(
   model.namespace.rdf('type'), 
   model.namespace.schemaOrg('Review')
 );
+
+
+``` javascript
+var acl = _storage.test();
+acl.g.statementsMatching(null,null, $rdf.sym('http://www.w3.org/ns/auth/acl#Authorization'))
+
+acl.g.statementsMatching($rdf.sym('https://nmaltsev.inrupt.net/#public'))
+acl.g.removeMany($rdf.sym('https://nmaltsev.inrupt.net/#public')
+```

@@ -372,6 +372,22 @@ const Storage = UITools.$decorateWatchers([
 		);
 	}
 
+	test() {
+		let folderUri = 'https://nmaltsev.inrupt.net//test4/';
+		let acl = new ACLManager(this.webId);
+
+		acl.addRule('owner')
+			.setResource(folderUri)
+			.forMe()
+			.accessMode(ACL_ACCESS_MODES.read, ACL_ACCESS_MODES.write, ACL_ACCESS_MODES.control);
+		acl.addRule('public')
+			.setResource(folderUri)
+			.forNotAuthorized()
+			.accessMode(ACL_ACCESS_MODES.read);
+
+		return acl;		
+	}
+
 	getMetaInformation(resourceUrl) {
 		// TODO
 		solid.auth.fetch(

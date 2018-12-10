@@ -29,6 +29,8 @@ class ACLManager {
 		return new ACLRule(ruleName_s, this);
 	}
 	serialize () {
+		console.dir(new $rdf.Serializer(this.g));
+		
 		return new $rdf.Serializer(this.g).toN3(this.g);
 	}
 	import(rulesets) {
