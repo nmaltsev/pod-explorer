@@ -118,11 +118,26 @@ const Storage = UITools.$decorateWatchers([
 		this.fetcher = new $rdf.Fetcher(store);
 	}
 	async _loadDir(uri_s) {
-		const uri = encodeURI(uri_s.replace(/\/?$/, '/'))
-		const store = $rdf.graph()
-		const fetcher = new $rdf.Fetcher(store)
+		const uri = encodeURI(uri_s.replace(/\/?$/, '/'));
+		const store = $rdf.graph();
+		const fetcher = new $rdf.Fetcher(store);
+		let response;
  
-		const response = await fetcher.load(uri);
+ 		try {
+ 			response = await fetcher.load(uri);
+ 		} catch (e) {
+ 			if (
+				e.status == 403 
+				|| e.status == 404
+			) {
+				alert(`Can't download "${uri_s}"`);
+				return [];
+			} else {
+				console.log(`Can't download "${uri_s}"`);
+				console.dir(response);	
+			}
+ 		}
+		
 		this._linkHeaders = parseLinkHeader(response.headers.get('Link'));
 
 		// get list of all nodes in dir

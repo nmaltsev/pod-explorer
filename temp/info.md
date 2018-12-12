@@ -209,3 +209,31 @@ acl.g.statementsMatching(null,null, $rdf.sym('http://www.w3.org/ns/auth/acl#Auth
 acl.g.statementsMatching($rdf.sym('https://nmaltsev.inrupt.net/#public'))
 acl.g.removeMany($rdf.sym('https://nmaltsev.inrupt.net/#public')
 ```
+
+
+
+
+### For report
+- mistakes in documentation or bugs in solid servers
+- no tools for debugging. We have to create small file manager for exploring changes after requests.
+- poor documentation with explanation of basic operations and concepts
+- small community of developers - There are around 100 projects on github that use rdflib.js with outdated api version. All of them belongs to students that have written launch application and developers of Solid (Current and past)
+
+Bugs
+1. Rdflib.js graph doesnot allow to work with relative paths, it works with only absolute urls. So most examples with rdf request need an adoptation before they can be used.
+2. Slid server does not save manage rights of the owner. Owner can block access to him self.
+
+
+some stranges:
+1. .acl and .meta files are not visible, but accessible. (Or theur visibility may be not documentated)
+2. Filename of root files/folders stat with first slash symbol. But with default acl reatrictments they are accessible without that slash.
+
+Some limitations:
+1. There is no any API for message passing throught solid server. We need to create that system throught the shared file in the POD. It is not ideal. All aplication need to create there own message passing system.
+
+That have we done
+- explore current state of solid project. Try to score it readibility to using in production.
+
+
+
+

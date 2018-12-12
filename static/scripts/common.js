@@ -195,6 +195,31 @@ function pasteInBuffer(text_s) {
 		});
 }
 
+const escapeMap = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	"'": '&#x27;'
+};
+const unescapeMap = {
+	'&amp;': '&',
+	'&lt;': '<',
+	'&gt;': '>',
+	'&quot;': '"',
+	'&#x27;': "'"
+};
+function escape(str){
+	return str ? str.replace(/[<>&"']/g, function(m){
+		return escapeMap[m];
+	}.bind(this)) : '';
+}
+function unescape(str){
+	return str.replace(/(&amp;|&lt;|&gt;|&quot;|&#x27;)/g, function(m){
+		return this.unescapeMap[m];
+	}.bind(this));
+}
+
 export {
 	$decorateWatchers,
 	bindEvents,
@@ -204,5 +229,7 @@ export {
 	emptyNode,
 	Events,
 	downloadFile,
-	pasteInBuffer
+	pasteInBuffer,
+	escape,
+	unescape
 };

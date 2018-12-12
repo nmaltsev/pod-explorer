@@ -161,3 +161,115 @@ console.log(aclserial);
     acl:defaultForNew <./>;
     acl:mode acl:Read, acl:Write, acl:Control.
 
+
+
+=====================================
+### Default settings
+https://myosotis.inrupt.net/.acl
+```
+# Root ACL resource for the user account
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+
+<#owner>
+    a acl:Authorization;
+
+    acl:agent <https://myosotis.inrupt.net/profile/card#me> ;
+
+    # Optional owner email, to be used for account recovery:
+    acl:agent <mailto:nsmalcev@bk.ru>;
+
+    # Set the access to the root storage folder itself
+    acl:accessTo </>;
+
+    # All resources will inherit this authorization, by default
+    acl:defaultForNew </>;
+
+    # The owner has all of the access modes allowed
+    acl:mode
+        acl:Read, acl:Write, acl:Control.
+
+# Data is private by default; no other agents get access unless specifically
+# authorized in other .acls
+```
+
+
+
+
+```
+  async initializeStore(webId: string) {
+    let host: string = $rdf.sym(webId).site().value;
+
+    const response0: SolidAPI.IResponce = await solid.auth.fetch(
+            host + '/' + this.appFolderName, 
+            {
+                method: 'HEAD',
+                headers: { 
+                    'Content-Type': 'text/turtle',
+                },
+                credentials: 'include',
+            }
+    );
+    if (response0.status == 404) {
+      const response1 = await solid.auth.fetch(
+        host, 
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'text/turtle',
+            Slug: this.appFolderName,
+            Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"',
+          },
+          credentials: 'include',
+        }
+      );
+      console.log('response1');
+      console.dir(response1);
+
+      const response2: SolidAPI.IResponce = await solid.auth.fetch(
+        host + '/' + this.appFolderName + '/' + this.queueFile, 
+        {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'text/turtle',
+          },
+          credentials: 'include',
+          body: ''
+        }
+      );
+
+      console.log('response2');
+      console.dir(response2);
+      let linkHeaders:ISolidEntityLinkHeader = parseLinkHeader(response2.headers.get('Link'));
+
+      console.log('LinkHeaders');
+      console.dir(linkHeaders);
+      console.dir(linkHeaders.acl.href);
+
+      if (!linkHeaders.acl || !linkHeaders.acl.href) {
+        return;
+      }
+      let aclUrl:string = host + '/' + this.appFolderName + '/' + linkHeaders.acl.href;
+      let requestBody:string = this.getACLRequestBody(host, aclUrl, webId);
+      // 
+  
+      console.log('ACL URL: %s', aclUrl)
+      const aclResponse: SolidAPI.IResponce = await solid.auth.fetch(
+        aclUrl, 
+        {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'text/turtle',
+          },
+          credentials: 'include',
+          body: requestBody
+        });
+      console.dir(aclResponse);
+
+    }
+
+    appFolderName: string = 'test7.app.review.social-app';
+
+    
+  }
+
+```

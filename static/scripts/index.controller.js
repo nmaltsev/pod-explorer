@@ -3,6 +3,7 @@ import {Model, Hotel} from './model.js';
 import {Storage, StorageException} from './storage.js';
 import {ACL_ACCESS_MODES, createSafeRuleset, Ruleset} from './acl_manager.js';
 import {PopupBuilder} from '../libs/popup_builder.js';
+import {createContentPopup} from '../utils/content.popup.js';
 
 const popupUri = '/pages/popup.html';
 
@@ -44,7 +45,9 @@ UITools.bindEvents(CONTROLS, {
 				_storage.url = href_s; break;
 			case 'show': 
 				_storage.getContent(href_s).then((data) => {
-					console.log('Content:\n %s', data.text);
+					createContentPopup({
+						text: data.text
+					}).open();
 				});
 				break;
 			case 'remove': 
