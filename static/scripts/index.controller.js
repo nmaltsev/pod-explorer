@@ -128,11 +128,19 @@ UITools.bindEvents(CONTROLS, {
 		// Download all files
 		Promise.all(
 			Array.from(e.target.files).map(function(file){
-				return _storage
-					.upload(url_s + encodeURIComponent(file.name), file)
-					.catch(function(e){ return null; });
+				if (
+					_storage.isDuplicateFileExist(file.name) ? 
+					confirm(`There is another file with name '${file.name}'.\nOverwrite it?`) :
+					true
+				) {
+					return _storage
+						.upload(url_s + encodeURIComponent(file.name), file)
+						.catch(function(e){ return null; });	
+				} else {
+					return Promise.resolve(true);
+				}
 			})
-		).then(function(r){
+		).then(function(){
 			// Reload list:
 			_storage.url = _storage.url;
 			e.target.value = null;

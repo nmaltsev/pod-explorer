@@ -64,6 +64,7 @@ input {
 .mb2 { margin-bottom: 16px; }
 .mb3 { margin-bottom: 24px; }
 .mb4 { margin-bottom: 32px; }
+.mr1 { margin-right: 8px; }
 
 
 .article-5 { font-size: 13px; line-height: 30px; }
@@ -195,7 +196,7 @@ a:hover {
 .navigation-table_wrap {
 	position: relative;
 	width: 100%;
-	height: calc(100vh - 148px);
+	height: calc(100vh - 154px);
 	overflow-y: auto;
 	border-bottom: 1px solid #aaa;
 }
@@ -304,5 +305,6 @@ a:hover {
     word-break: break-all;
     width: 100%;
     display: block;
-
 }
+
+.app-header {padding: 6px 10px;background-color: #fafafa;}
