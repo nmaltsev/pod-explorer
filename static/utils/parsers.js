@@ -65,6 +65,12 @@ function getParent(url_s) {
 	return list.length > 4 ? list.slice(0, pos).join('/') + '/' : null;
 }
 
+function extractHash(url_s) {
+	let i_n = url_s.indexOf('#');
+
+	return i_n > -1 ? url_s.substr(i_n + 1) : url_s;
+}
+
 // function getParent(url_s) {
 // 	let list = url_s.replace(/(?<!\:)\/+/g,'/').split('/');
 // 	let i = list.length;
@@ -84,5 +90,6 @@ function getParent(url_s) {
 export {
 	parseLinkHeader,
 	basename,
-	getParent
+	getParent,
+	extractHash
 }

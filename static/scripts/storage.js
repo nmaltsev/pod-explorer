@@ -43,6 +43,7 @@ const Storage = UITools.$decorateWatchers([
 		let store = $rdf.graph();
 		// Fetcher instance will store all the collected data!
 		this.fetcher = new $rdf.Fetcher(store);
+		this.updater = new $rdf.UpdateManager(store);
 	}
 	async _loadDir(uri_s) {
 		const uri = encodeURI(uri_s.replace(/\/?$/, '/'));
@@ -81,23 +82,37 @@ const Storage = UITools.$decorateWatchers([
 		});
 	}
 	_getType(types) {
-		for (var i = 0; i < types.length; i++) {
-			if (this._MEDIA_TYPES.test(types[i].value)) {
-				return types[i].value
-				.replace(this._MEDIA_TYPES, '')
-				.replace(/#.*$/, '')
+		let i_n = types.length;
+		let resourceType_s = 'Resource';
+		let mediaType_s;
+		let type_s;
+
+		while (i_n--> 0) {
+			type_s = types[i_n].value; 
+			if (type_s.indexOf('http://www.w3.org/ns/ldp#Container') != -1) {
+				resourceType_s = 'Directory';
+			} else if (type_s.indexOf('http://www.w3.org/ns/iana/media-types/') != -1) {
+				mediaType_s = type_s.replace('http://www.w3.org/ns/iana/media-types/', '').replace(/#.*$/, '');
 			}
 		}
-		return 'directory';
+
+		return mediaType_s ? mediaType_s : resourceType_s;
 	}
 	async showFolder(uri_s) {
-
-		// TODO subscribe on changes
-		// this.updater.addDownstreamChangeListener(this.reviewInstance.doc(), async () => {
-		// 	console.log('Reviews updated');
-		// 	this.fetchReviews(true);
-		// });
+		// Turn off because RDFJSLIB v 0.19.1 doesn't support removing watcher ;)
 		
+		// let upd = this.updater.addDownstreamChangeListener(uri_s, async () => {
+		// 	console.log('Reviews updated');
+		// 	await this.loadDir(uri_s);	
+		// });
+
+
+
+		console.log('Upd');
+		console.dir(upd);
+		await this.loadDir(uri_s);
+	}
+	async loadDir(uri_s) {
 		this.isNodeListLoading = true;
 		const list = this._sort(await this._loadDir(uri_s), this.sortBy);
 		const parent_s = Parsers.getParent(uri_s);
@@ -362,7 +377,6 @@ const Storage = UITools.$decorateWatchers([
 	}
 });
 
-Storage.prototype._MEDIA_TYPES = /^http:\/\/www\.w3\.org\/ns\/iana\/media-types\//;
 Storage.prototype._sortCallbacks = {
 	timeUp: function(n1, n2){ return n1.dateModified < n2.dateModified ? 1 : n1.dateModified > n2.dateModified ? -1 : 0;},
 	timeDown: function(n1, n2){ return n1.dateModified < n2.dateModified ? -1 : n1.dateModified > n2.dateModified ? 1 : 0;},

@@ -234,6 +234,79 @@ Some limitations:
 That have we done
 - explore current state of solid project. Try to score it readibility to using in production.
 
+Messaging throught file:
+It is not fraud safe, because while delivering messgae server can't reject a incomming not valid message.
+
+## TRoubles: 
+1. Access not guaranted. In any time the owner of POD (if he has not lost the Management access to the application files) can change access settings.
+Good practise is left decription of usage of file in .mata file of each resource!
 
 
+==============================================
+
+```
+[acl:accessTo <card>; acl:mode acl:Read; acl:agentClass <http://my.example.net/groups/friends#group>].
+[acl:accessTo <card>; acl:mode acl:Read, acl:Write;  acl:agentClass <groups/family#group>].
+
+<#group> foaf:member <../user/alice#me>, <../user/bob#me>, <../user/charlie#me>. 
+fri:friends n0:member c:me, c0:me.
+```
+
+Dans le .acl
+```
+# Group authorization, giving Read/Write access to two groups, which are
+# specified in the 'work-groups' document.
+<#authorization2>
+    a               acl:Authorization;
+    acl:accessTo    <https://alice.example.com/docs/shared-file1>;
+    acl:mode        acl:Read,
+                    acl:Write;
+    acl:agentGroup  <https://alice.example.com/work-groups#Accounting>;
+    acl:agentGroup  <https://alice.example.com/work-groups#Management>.
+```
+
+
+```
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix s:   <http://example.org/students/vocab#>.
+
+<http://example.org/courses/6.001>
+    s:students (
+        <http://example.org/students/Amy>
+        <http://example.org/students/Mohamed>
+        <http://example.org/students/Johann>
+    ).
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix s: <http://example.org/students/vocab#>.
+<http://example.org/courses/6.001>
+s:students [
+a rdf:Bag;
+rdf:_1 <http://example.org/students/Amy>;
+rdf:_2 <http://example.org/students/Mohamed>;
+rdf:_3 <http://example.org/students/Johann>;
+rdf:_4 <http://example.org/students/Maria>;
+rdf:_5 <http://example.org/students/Phuong>.
+].
+
+
+===================================
+var b = $rdf.blankNode()
+
+b.add($rdf.sym('https://amadeus.inrupt.net//profile/card#me'));
+b.add($rdf.sym('https://myosotis.inrupt.net//profile/card#me'));
+
+
+var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+var g = $rdf.graph();
+g.add(
+  $rdf.sym('https://amadeus.inrupt.net//test23.app.review.social-app/friends.ttl#friends'), 
+  FOAF('member'), 
+  $rdf.sym('https://amadeus.inrupt.net//profile/card#me'));
+g.add(
+  $rdf.sym('https://amadeus.inrupt.net//test23.app.review.social-app/friends.ttl#friends'), 
+  FOAF('member'), 
+  $rdf.sym('https://myosotis.inrupt.net//profile/card#me'));
+
+new $rdf.Serializer(g).toN3(g);
+```
 

@@ -1,11 +1,11 @@
-# Solid demo app
+# Solid file manager
 
-[demo](https://nmalcev.github.io/soliddemo/) 
+[run](https://nmalcev.github.io/soliddemo/) 
 
 ### Step by step
 
-Install `npm i`
+1. Install `npm i`
+2. Run `npm run server`
+3. Open `http://localhost:9060/`
 
-Run `npm run server`
 
-Open `http://localhost:9060/`

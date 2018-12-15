@@ -219,6 +219,7 @@ a:hover {
 }
 .navigation-table [data-action] {
 	cursor: pointer;
+	user-select: none;
 }
 .navigation-table > thead td {
 	background-color: #dddce4;
