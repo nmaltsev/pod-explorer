@@ -100,7 +100,7 @@ const Storage = UITools.$decorateWatchers([
 	}
 	async showFolder(uri_s) {
 		// Turn off because RDFJSLIB v 0.19.1 doesn't support removing watcher ;)
-		
+
 		// let upd = this.updater.addDownstreamChangeListener(uri_s, async () => {
 		// 	console.log('Reviews updated');
 		// 	await this.loadDir(uri_s);	
@@ -108,8 +108,8 @@ const Storage = UITools.$decorateWatchers([
 
 
 
-		console.log('Upd');
-		console.dir(upd);
+		// console.log('Upd');
+		// console.dir(upd);
 		await this.loadDir(uri_s);
 	}
 	async loadDir(uri_s) {
@@ -261,7 +261,6 @@ const Storage = UITools.$decorateWatchers([
 
 			rulesets = aclParser.getRules();
 		} else { // There is no acl file and no rulesets
-			// rulesets = [createSafeRuleset(folderUri, this.webId)];
 			rulesets = [];
 		}
 
@@ -317,14 +316,29 @@ const Storage = UITools.$decorateWatchers([
 		);
 	}
 
+	async updateFileContent(url_s, requestBody, contentType) {
+		const response = await solid.auth.fetch(
+			url_s, 
+			{
+				method: 'PUT',
+				headers: { 
+					'Content-Type': contentType,
+				},
+				credentials: 'include',
+				body: requestBody
+			}
+		);
+	}
+
+
 	async setACL(aclUri_s, folderUri) {
 		let acl = new ACLManager(this.webId);
 
-		acl.addRule('owner')
+		acl.addRule(aclUri_s + '#owner')
 			.setResource(folderUri)
 			.forMe()
 			.accessMode(ACL_ACCESS_MODES.read, ACL_ACCESS_MODES.write, ACL_ACCESS_MODES.control);
-		acl.addRule('public')
+		acl.addRule(aclUri_s + '#public')
 			.setResource(folderUri)
 			.forNotAuthorized()
 			.accessMode(ACL_ACCESS_MODES.read);
@@ -344,22 +358,6 @@ const Storage = UITools.$decorateWatchers([
 				body: requestBody
 			}
 		);
-	}
-
-	test() {
-		let folderUri = 'https://nmaltsev.inrupt.net//test4/';
-		let acl = new ACLManager(this.webId);
-
-		acl.addRule('owner')
-			.setResource(folderUri)
-			.forMe()
-			.accessMode(ACL_ACCESS_MODES.read, ACL_ACCESS_MODES.write, ACL_ACCESS_MODES.control);
-		acl.addRule('public')
-			.setResource(folderUri)
-			.forNotAuthorized()
-			.accessMode(ACL_ACCESS_MODES.read);
-
-		return acl;		
 	}
 
 	getMetaInformation(resourceUrl) {

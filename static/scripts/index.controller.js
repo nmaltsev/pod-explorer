@@ -4,6 +4,7 @@ import {Storage, StorageException} from './storage.js';
 import {ACL_ACCESS_MODES, createSafeRuleset, Ruleset} from './acl_manager.js';
 import {PopupBuilder} from '../libs/popup_builder.js';
 import {createContentPopup} from '../utils/content.popup.js';
+import {createTextPopup} from '../utils/text.popup.js';
 
 const popupUri = '/pages/popup.html';
 
@@ -49,6 +50,25 @@ UITools.bindEvents(CONTROLS, {
 						text: data.text
 					}).open();
 				});
+				break;
+			case 'edit': 
+				if (nodeData.type.indexOf('text/') != -1) {
+					_storage.getContent(href_s).then((data) => {
+						createTextPopup({
+							text: data.text,
+							title: href_s,
+							onsave: (text_s) => {
+								// TODO
+								console.log("Save");
+								console.dir(text_s);
+								_storage.updateFileContent(href_s, text_s, nodeData.type).then(() => {
+									console.log('File updated');
+								});
+							}
+						}).open();
+					});	
+				}
+				
 				break;
 			case 'remove': 
 				if (confirm('Are you sure?')) {
@@ -184,6 +204,7 @@ _storage.bindEvents({
 				<td>${node.size}</td>
 				<td>
 					<i data-action="show" title="Show">[S]</i>
+					<i data-action="edit" title="Edit file">[E]</i>
 					<i data-action="remove" title="Remove">[R]</i>
 					<i data-action="download" title="Download">[D]</i>
 					<i data-action="info" title="ACL">[I]</i>
@@ -224,7 +245,7 @@ function openRulesetPopup(d) {
 	console.dir(d);
 
 	let popup = new PopupBuilder({
-		className: 'm3-dialog',
+		className: 'm3-dialog __size-a',
 		content: `
 			<form data-co="form" class="">
 				<div class="mb4" data-co="ruleset-list"></div>
@@ -249,7 +270,7 @@ function openRulesetPopup(d) {
 				e.preventDefault();
 				this.rulesetControls.push(
 					this.renderRuleset(
-						createSafeRuleset(d.uri, _storage.webId), 
+						createSafeRuleset(d.uri, _storage.webId, d.aclUri), 
 						this.rulesetControls.length
 					)
 				);
@@ -264,10 +285,12 @@ function openRulesetPopup(d) {
 					if (controls.checkboxRead.checked) ruleset.mode.push(ACL_ACCESS_MODES.read);
 					if (controls.checkboxWrite.checked) ruleset.mode.push(ACL_ACCESS_MODES.write);
 					if (controls.checkboxControl.checked) ruleset.mode.push(ACL_ACCESS_MODES.control);
+					if (controls.checkboxAppend.checked) ruleset.mode.push(ACL_ACCESS_MODES.append);
 
 					ruleset.accessTo = this.parseArray(controls.accessTo.value);
 					ruleset.agent = this.parseArray(controls.agent.value);
-					ruleset.agentClass = this.parseArray(controls.agentClass.value);
+					ruleset.setAgentClass(this.parseArray(controls.agentClass.value));
+					ruleset.setGroup(this.parseArray(controls.group.value));
 					ruleset.defaultForNew = this.parseArray(controls.defaultForNew.value);
 
 					return ruleset;
@@ -321,6 +344,9 @@ function openRulesetPopup(d) {
 						<input type="checkbox" data-co="checkbox-write"/><span>Write</span>
 					</label>
 					<label>
+						<input type="checkbox" data-co="checkbox-append"/><span>Append</span>
+					</label>
+					<label>
 						<input type="checkbox" data-co="checkbox-control"/><span>Control</span>
 					</label>
 				</div>
@@ -329,8 +355,12 @@ function openRulesetPopup(d) {
 					<textarea class="basefield" data-co="accessTo"></textarea>
 				</div>
 				<div>
-					<p>Granted to (Enter webId or group url):</p>
+					<p>Granted to users (Enter webId):</p>
 					<textarea class="basefield" data-co="agent"></textarea>
+				</div>
+				<div>
+					<p>Granted to groups (Enter group url):</p>
+					<textarea class="basefield" data-co="group"></textarea>
 				</div>
 				<div>
 					<p>agentClass (http://xmlns.com/foaf/0.1/Agent for non authorized users):</p>
@@ -354,12 +384,15 @@ function openRulesetPopup(d) {
 				if (mode.value == ACL_ACCESS_MODES.read.value) controls.checkboxRead.checked = true;
 				if (mode.value == ACL_ACCESS_MODES.write.value) controls.checkboxWrite.checked = true;
 				if (mode.value == ACL_ACCESS_MODES.control.value) controls.checkboxControl.checked = true;
+				if (mode.value == ACL_ACCESS_MODES.append.value) controls.checkboxAppend.checked = true;
 			});
 
 			controls.accessTo.value = (ruleset.accessTo || []).join(',\n');
 			controls.agent.value = (ruleset.agent || []).join(',\n');
 			controls.agentClass.value = (ruleset.agentClass || []).join(',\n');
 			controls.defaultForNew.value = (ruleset.defaultForNew || []).join(',\n');
+			controls.group.value = (ruleset.agentGroup || []).join(',\n');
+
 
 			return controls;	
 		},
