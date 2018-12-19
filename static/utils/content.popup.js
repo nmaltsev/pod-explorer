@@ -2,43 +2,58 @@ import * as UITools from '../scripts/common.js';
 import {PopupBuilder} from '../libs/popup_builder.js';
 
 // @param {Object} data
-// @param {Strung} data.text
+// @param {String} data.text
+// @param {String} data.image
+// @param {String} data.title
 function createContentPopup(data) {
 	return new PopupBuilder({
 		className: 'm3-dialog __content',
 		content: `
-			<form data-co="form" class="">
-				<pre data-co="text-content" class="content-dialog-wrapper"></pre>
-				<div class="mb4" data-co="ruleset-list"></div>
-				
-				<div class="btnline">
-					<button type="reset" class="basebtn __gray">Close</button>
-					<button type="submit" class="basebtn __blue">Update</button>
+			<form data-co="form" class="layout-row">
+				<h3 class="layout-row_cell-auto edit-popup_title" data-co="title"></h3>
+				<div class="layout-row_cell-full edit-popup_content-wrapper">
+					<pre data-co="text-content" class="edit-popup_text-block"></pre>
+					<div data-co="image-wrap" class="m3-dialog-scroller edit-popup_image-wrap">
+						<img class="edit-popup_image" data-co="image">
+					</div>
+				</div>
+				<div class="layout-row_cell-auto  btnline">
+					<button type="submit" class="basebtn __blue">Close</button>
 				</div>
 			</form>
 		`,
 		events: {
 			'form submit': function(e){
 				e.preventDefault();
-					this.close();	
+				this.close();	
 			},
-			'form reset': function(e){
-				e.preventDefault();
+			'image load': function() {
 
-				this.close();
-			}
+			},
+			'image error': function() {
+
+			},
 		},
 	}, {
 		onopen: function(view) {
-			view.controls.textContent.innerHTML = UITools.escape(data.text)
+			view.controls.title.textContent = data.title;
+
+			if (data.text) {
+				UITools.toggle(view.controls.textContent, true);
+				UITools.toggle(view.controls.imageWrap, false);
+				view.controls.textContent.innerHTML = UITools.escape(data.text);	
+			} else if (data.image) {
+				UITools.toggle(view.controls.imageWrap, true);
+				UITools.toggle(view.controls.textContent, false);
+				view.controls.image.setAttribute('src', data.image);
+			} else {
+				alert('Unsupported viewer format');
+			}
 		},
 		onclose: function(view){
 
 		},
-
 	});
-
-
 };
 
 export {

@@ -12,8 +12,28 @@ ACL
   https://github.com/solid/solid-spec/blob/master/acl-inheritance.md
   https://www.w3.org/wiki/WebAccessControl
   https://github.com/solid/web-access-control-spec
+Grand permissions to group
+  http://solid.github.io/web-access-control-spec/#groups-of-agents
+
+
+TODO
+  1. https://solid.mit.edu/
+  2. find answer on bug tracker web site
+  3. <) https://github.com/solid/solid-permissions, https://github.com/solid/wac-allow, https://github.com/solid/solid-zagel
 
   https://melvincarvalho.com/#me
+
+======================================
+solid file client   
+  https://github.com/jeff-zucker/solid-file-client
+solid ide
+  https://jeff-zucker.github.io/solid-ide/
+other projects
+  http://www.imagesnippets.com/learn-more/
+?? how to create sparql data
+  https://forum.solidproject.org/t/fun-fact-using-sparql-to-query-the-type-registry/776
+  https://github.com/solid/solid/blob/master/proposals/data-discovery.md
+  https://jeff-zucker.github.io/sparql-fiddle/
 
 ```  
 const me = store.sym('https://example.com/alice/card#me');
@@ -310,3 +330,16 @@ g.add(
 new $rdf.Serializer(g).toN3(g);
 ```
 
+### example of observer
+
+Cold observer - producer of events is creating in observer
+``` javascript
+const source = new Observable((observer) => {
+  const socket = new WebSocket('ws://someurl');
+  socket.addEventListener('message', (e) => observer.next(e));
+  return () => socket.close();
+});
+```
+
+
+They want to заменить Google+ and others Social Networks

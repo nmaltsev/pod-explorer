@@ -273,3 +273,75 @@ https://myosotis.inrupt.net/.acl
   }
 
 ```
+
+
+
+
+
+
+const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+const VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns#");
+
+var acl = $rdf.graph();
+
+acl.add($rdf.sym('https://nmaltsev.inrupt.net/#owner'), RDF("type"), WAC("Authorization"));
+//acl.add($rdf.sym('https://nmaltsev.inrupt.net/#owner'), WAC("accessTo"), $rdf.sym('https://nmaltsev.inrupt.net/'));
+acl.add($rdf.sym('https://nmaltsev.inrupt.net/#owner'), WAC('accessTo'), $rdf.sym('https://nmaltsev.inrupt.net//test5/'));
+acl.add($rdf.sym("https://nmaltsev.inrupt.net/#owner"), WAC('agent'), $rdf.sym('https://nmaltsev.inrupt.net/profile/card#me'));
+acl.add($rdf.sym("https://nmaltsev.inrupt.net/#owner"), WAC('mode'), WAC('Read'));
+acl.add($rdf.sym("https://nmaltsev.inrupt.net/#owner"), WAC('mode'), WAC('Write'));
+
+
+
+
+var aclserial = new $rdf.Serializer(acl).toN3(acl);
+console.log(aclserial);    
+////////////////////////////////////////////////////////////
+
+var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+var WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns#");
+
+var acl = $rdf.graph();
+
+acl.add($rdf.sym('https://nmaltsev.inrupt.net/'), RDF("type"), WAC("GroupListing"));
+acl.add($rdf.sym('https://nmaltsev.inrupt.net/#owner'), RDF("type"), VCARD("Group"));
+acl.add($rdf.sym('https://nmaltsev.inrupt.net/#owner'), VCARD("hasMember"), $rdf.sym('https://myosotis.inrupt.net/profile/card#me'));
+var aclserial = new $rdf.Serializer(acl).toN3(acl);
+console.log(aclserial);    
+
+==================================================================
+var ns = $rdf.Namespace('https://amadeus.inrupt.net//test24.app.review.social-app/friends.ttl');
+var g = $rdf.graph();
+var friendNS = $rdf.sym(ns('#friends'));
+
+g.add($rdf.sym(ns('')), RDF("type"), WAC("GroupListing"));
+g.add(friendNS, RDF("type"), VCARD("Group"));
+g.add(friendNS, VCARD("hasMember"), $rdf.sym('https://myosotis.inrupt.net/profile/card#me'));
+
+new $rdf.Serializer(g).toN3(g);
+
+
+https://amadeus.inrupt.net//test24.app.review.social-app/gfriends.ttl#Accounting
+
+
+==================================================================
+
+
+@prefix    acl:  <http://www.w3.org/ns/auth/acl#>.
+@prefix  vcard:  <http://www.w3.org/2006/vcard/ns#>.
+
+<>  a  acl:GroupListing.
+
+<#Accounting>
+    a                vcard:Group;
+    # vcard:hasUID     <urn:uuid:8831CBAD-1111-2222-8563-F0F4787E5398:ABGroup>;
+    # dc:created       "2013-09-11T07:18:19+0000"^^xsd:dateTime;
+    # dc:modified      "2015-08-08T14:45:15+0000"^^xsd:dateTime;
+
+    # Accounting group members:
+    vcard:hasMember  <https://myosotis.inrupt.net/profile/card#me>;
+    vcard:hasMember  <https://lafayette.inrupt.net/profile/card#me>.

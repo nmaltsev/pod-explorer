@@ -16,6 +16,25 @@ const _storage = new Storage();
 window._storage = _storage;
 window._controls = CONTROLS;
 
+function showResourceContent(resourceLink, resourceData) {
+	console.log('showResourceContent');
+	console.dir(resourceData);
+	if (resourceData.type.indexOf('text/') != -1) {
+		_storage.getContent(resourceLink).then((data) => {
+			createContentPopup({
+				text: data.text,
+				title: resourceLink
+			}).open();
+		});
+	} else if (resourceData.type.indexOf('image/') != -1) {
+		createContentPopup({
+			image: resourceLink,
+			title: resourceLink,
+		}).open();
+	} else {
+		alert('Unsupported file format for viewer ' + resourceData.type);
+	}
+}
 
 // DOM event listeners
 UITools.bindEvents(CONTROLS, {
@@ -41,15 +60,19 @@ UITools.bindEvents(CONTROLS, {
 		let href_s = $tr.dataset.href;
 		let nodeData = _storage.nodeList[parseInt($tr.dataset.id)];
 
+
+
 		switch (action_s) {
 			case 'navigate': 
-				_storage.url = href_s; break;
+				console.dir(nodeData);
+				if (nodeData.type == 'Directory' || nodeData.type == 'parent') {
+					_storage.url = href_s;
+				} else {
+					showResourceContent(href_s, nodeData);
+				}
+				break;
 			case 'show': 
-				_storage.getContent(href_s).then((data) => {
-					createContentPopup({
-						text: data.text
-					}).open();
-				});
+				showResourceContent(href_s, nodeData);
 				break;
 			case 'edit': 
 				if (nodeData.type.indexOf('text/') != -1) {
