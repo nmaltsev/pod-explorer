@@ -101,6 +101,11 @@ input {
 	width: 100%;
 	max-width: 100%; /* for resizeable textarea */
 	box-sizing: border-box;
+	line-height: 18px;
+}
+.basefield.__invert-blue {
+	border-color: #009cff;
+	box-shadow: 0 2px 2px 0 rgba(31, 24, 24, 0.08);
 }
 
 
@@ -121,6 +126,10 @@ input {
 	border-radius: 3px;
 	background: #fff;
 	box-shadow: 0 2px 2px 0 rgba(0,0,0,0.08);
+}
+.basebtn.__invert-blue:disabled {
+	pointer-events: none;
+	color: #ccc;
 }
 .basebtn.__invert-blue:hover {
 	color: #fff;

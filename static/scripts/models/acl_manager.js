@@ -2,11 +2,6 @@
 // https://www.w3.org/wiki/WebAccessControl
 // https://github.com/solid/web-access-control-spec
 
-// TODO 
-// acl:agentGroup  <https://alice.example.com/work-groups#Accounting>;
-// acl:agentGroup  <https://alice.example.com/work-groups#Management>.
-// [acl:accessTo <card>; acl:mode acl:Read; acl:agentClass <http://my.example.net/groups/friends#group>].
-
 const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
 const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");

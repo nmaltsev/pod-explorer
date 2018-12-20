@@ -60,7 +60,6 @@ function getParent(url_s) {
 	if (pos > 3 && !list[pos -1] ) {pos--;}
 	if (pos > 3) {pos--;}
 	if (pos > 3 && !list[pos -1] ) {pos--;}
-	console.dir(list)	
 
 	return list.length > 4 ? list.slice(0, pos).join('/') + '/' : null;
 }

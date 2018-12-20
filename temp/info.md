@@ -23,6 +23,10 @@ TODO
 
   https://melvincarvalho.com/#me
 
+INFO about solid API
+  https://forum.solidproject.org/t/question-about-retrieving-data/569/6
+  https://forum.solidproject.org/t/my-first-app-adding-resources/275/10
+
 ======================================
 solid file client   
   https://github.com/jeff-zucker/solid-file-client
@@ -262,6 +266,15 @@ It is not fraud safe, because while delivering messgae server can't reject a inc
 Good practise is left decription of usage of file in .mata file of each resource!
 
 
+# SOLID ALTERNATIVES
+https://unhosted.org/ https://5apps.com/
+  read more about them https://forum.solidproject.org/t/unhosted-web-apps/766
+
+## where to store application data. And how
+There are no decision
+  https://forum.solidproject.org/t/the-right-location-for-a-new-apps-data/662
+  https://github.com/solid/solid/blob/master/proposals/data-discovery.md
+    It's only proposals!
 ==============================================
 
 ```

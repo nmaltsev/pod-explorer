@@ -49,6 +49,8 @@ class HashModel extends UITools.Events {
 	}
 	init () {
 		window.addEventListener('hashchange', (e) => {
+			console.log('hashchange');
+			console.dir(e);
 			this.state = this._parse();
 			this._trigger();
 		}, false);

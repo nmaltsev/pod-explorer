@@ -1,4 +1,4 @@
-import {Events} from '../scripts/common.js';
+import {Events} from './common.js';
 
 // @param {Object} conf.events
 // @param {String} conf.className

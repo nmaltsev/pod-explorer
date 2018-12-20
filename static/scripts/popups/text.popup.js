@@ -1,5 +1,5 @@
-import * as UITools from '../scripts/common.js';
-import {PopupBuilder} from '../libs/popup_builder.js';
+import * as UITools from '../utils/common.js';
+import {PopupBuilder} from '../utils/popup_builder.js';
 
 // @param {Object} data
 // @param {String} data.text

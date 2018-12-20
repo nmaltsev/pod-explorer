@@ -1,12 +1,13 @@
-import * as UITools from './common.js';
-import {Model, Hotel} from './model.js';
-import {Storage, StorageException} from './storage.js';
-// import {ACL_ACCESS_MODES, createSafeRuleset, Ruleset} from './acl_manager.js';
-import {PopupBuilder} from '../libs/popup_builder.js';
-import {createContentPopup} from '../utils/content.popup.js';
-import {createTextPopup} from '../utils/text.popup.js';
-import {createRulesetPopup} from './popups/ruleset.popup.js';
-import {HashModel} from './models/hash.model.js';
+import * as UITools from './../utils/common.js';
+import {PopupBuilder} from './../utils/popup_builder.js';
+
+import {Storage, StorageException} from './../models/storage.js';
+import {HashModel} from './../models/navigation.model.js';
+
+import {createContentPopup} from './../popups/content.popup.js';
+import {createTextPopup} from './../popups/text.popup.js';
+import {createRulesetPopup} from './../popups/ruleset.popup.js';
+
 
 
 const popupUri = '/pages/popup.html';
@@ -16,9 +17,11 @@ const CONTROLS = UITools.findNodes();
 const _storage = new Storage();
 const _hash = new HashModel(['url']); 
 
+
 window._hash = _hash;
 window._storage = _storage;
 window._controls = CONTROLS;
+
 
 function showResourceContent(resourceLink, resourceData) {
 	if (resourceData.type.indexOf('text/') != -1) {
@@ -130,6 +133,10 @@ UITools.bindEvents(CONTROLS, {
 	},
 	'reset navigationForm': function(e) {
 		e.preventDefault();
+
+		console.log('RESET');
+		console.dir(_storage);
+
 		if (_storage.prevUrl) {
 			_storage.url = _storage.prevUrl;
 		}
@@ -199,7 +206,7 @@ UITools.bindEvents(CONTROLS, {
 
 _storage.bindEvents({
 	'change:url': function(model, url, prevUrl){
-		console.log('[change:url] %s', url);
+		console.log('[change:url] %s prev: %s', url, prevUrl);
 		CONTROLS.navigationUrl.value = url;
 		_hash.update('url', url);
 
@@ -208,11 +215,12 @@ _storage.bindEvents({
 
 	},
 	'change:prevUrl': function(model, url) {
-		if (url) {
-			CONTROLS.navigationBackBtn.removeAttribute('disabled');	
-		} else {
-			CONTROLS.navigationBackBtn.setAttribute('disabled', true);
-		}
+		// if (url) {
+		// 	CONTROLS.navigationBackBtn.removeAttribute('disabled');	
+		// } else {
+		// 	CONTROLS.navigationBackBtn.setAttribute('disabled', true);
+		// }
+		CONTROLS.navigationBackBtn.disabled = !url;
 	},
 	'change:nodeList': function(model, nodes){
 		UITools.emptyNode(CONTROLS.navigationTableBody);
@@ -248,7 +256,7 @@ _storage.bindEvents({
 
 _hash.on('url', function(m, url_s){
 	console.log('URL: %s', url_s);
-	_storage.url = url_s;
+	// _storage.url = url_s;
 });
 _hash.init();
 

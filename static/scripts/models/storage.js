@@ -1,4 +1,4 @@
-import * as UITools from './common.js';
+import * as UITools from './../utils/common.js';
 import {ACLManager, ACL_ACCESS_MODES, ACLParser, Ruleset, createSafeRuleset} from './acl_manager.js';
 import * as Parsers from './../utils/parsers.js';
 
@@ -116,8 +116,6 @@ const Storage = UITools.$decorateWatchers([
 		this.isNodeListLoading = true;
 		const list = this._sort(await this._loadDir(uri_s), this.sortBy);
 		const parent_s = Parsers.getParent(uri_s);
-
-		console.log('URI: `%s`, parent `%s`', uri_s, parent_s);
 
 		if (parent_s) {
 			// Add parent folder at first position 

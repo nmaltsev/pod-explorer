@@ -1,6 +1,6 @@
-import * as UITools from '../common.js';
-import {PopupBuilder} from '../../libs/popup_builder.js';
-import {ACL_ACCESS_MODES, createSafeRuleset, Ruleset} from './../acl_manager.js';
+import * as UITools from '../utils/common.js';
+import {PopupBuilder} from '../utils/popup_builder.js';
+import {ACL_ACCESS_MODES, createSafeRuleset, Ruleset} from './../models/acl_manager.js';
 
 function createRulesetPopup(d) {
 	return new PopupBuilder({
