@@ -38,11 +38,11 @@ function createContentPopup(data) {
 		onopen: function(view) {
 			view.controls.title.textContent = data.title;
 
-			if (data.text) {
+			if (data.hasOwnProperty('text')) {
 				UITools.toggle(view.controls.textContent, true);
 				UITools.toggle(view.controls.imageWrap, false);
 				view.controls.textContent.innerHTML = UITools.escape(data.text);	
-			} else if (data.image) {
+			} else if (data.hasOwnProperty('image')) {
 				UITools.toggle(view.controls.imageWrap, true);
 				UITools.toggle(view.controls.textContent, false);
 				view.controls.image.setAttribute('src', data.image);

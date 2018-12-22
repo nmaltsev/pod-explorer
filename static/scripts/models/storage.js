@@ -27,7 +27,8 @@ class StorageException {
 	}
 }
 StorageException.prototype.codeMap = {
-	100: 'Unvalid folder path'
+	100: 'Unvalid folder path',
+	200: 'File cannot be readed',
 }
 
 const Storage = UITools.$decorateWatchers([
@@ -145,23 +146,34 @@ const Storage = UITools.$decorateWatchers([
 	}
 
 	async getContent(url_s) {
-		console.log('[getContent] `%s`', url_s);
 		let response = await solid.auth.fetch(url_s,{ 
 			method: 'GET' 
-		});
+		});	
+		console.log('[getContent] `%s`', url_s);
+		console.dir(response);
 		
-		let contentType= response.headers.get('Content-Type')
-		let text = await response.text();
+		if (response.status > 199 && response.status < 300) {
+			let contentType_s = response.headers.get('Content-Type')
+			let text_s = await response.text() || '';	
+
+			return {
+				text: text_s,
+				contentType: contentType_s
+			};
+		} else {
+			// inform about trouble
+			this.troubles = new StorageException(200);
+		}
+
+		
+		
 
 		// response.body.getReader().read().then((r) => {
 		// 	console.log('SRE %s', r.done);
 		// 	console.dir(r.value);
 		// });
 
-		return {
-			text,
-			contentType
-		};
+		
 	}
 
 	

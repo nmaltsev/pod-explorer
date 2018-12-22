@@ -53,6 +53,9 @@ function createTextPopup(data) {
 		},
 	}, {
 		onopen: function(view) {
+			console.log('O');
+			console.dir(data);
+
 			this.controls.textContent.value = data.text;
 			this.controls.title.innerText = data.title;
 		},

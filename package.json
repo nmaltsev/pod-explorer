@@ -1,7 +1,7 @@
 {
-  "name": "SolidDemo",
+  "name": "pod_explorer",
   "version": "1.0.0",
-  "description": "",
+  "description": "POD Explorer",
   "main": "index.js",
   "scripts": {
     "server": "http-server ./static -p 9060"

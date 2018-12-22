@@ -7,6 +7,7 @@ import {HashModel} from './../models/navigation.model.js';
 import {createContentPopup} from './../popups/content.popup.js';
 import {createTextPopup} from './../popups/text.popup.js';
 import {createRulesetPopup} from './../popups/ruleset.popup.js';
+import {createResourcePopup} from './../popups/new_resource.popup.js';
 
 
 
@@ -26,6 +27,8 @@ window._controls = CONTROLS;
 function showResourceContent(resourceLink, resourceData) {
 	if (resourceData.type.indexOf('text/') != -1) {
 		_storage.getContent(resourceLink).then((data) => {
+			if (!data) return;
+			
 			createContentPopup({
 				text: data.text,
 				title: resourceLink
@@ -66,7 +69,6 @@ UITools.bindEvents(CONTROLS, {
 		let nodeData = _storage.nodeList[parseInt($tr.dataset.id)];
 
 
-
 		switch (action_s) {
 			case 'navigate': 
 				console.dir(nodeData);
@@ -81,35 +83,40 @@ UITools.bindEvents(CONTROLS, {
 				break;
 			case 'edit': 
 				if (nodeData.type.indexOf('text/') != -1) {
-					_storage.getContent(href_s).then((data) => {
-						createTextPopup({
-							text: data.text,
-							title: href_s,
-							onsave: (text_s) => {
-								// TODO
-								console.log("Save");
-								console.dir(text_s);
-								_storage.updateFileContent(href_s, text_s, nodeData.type).then(() => {
-									console.log('File updated');
-								});
-							}
-						}).open();
-					});	
+					_storage
+						.getContent(href_s)
+						.then((data) => {
+							if (!data) return;
+							createTextPopup({
+								text: data.text,
+								title: href_s,
+								onsave: (text_s) => {
+									_storage
+										.updateFileContent(href_s, text_s, nodeData.type)
+										.then(() => {
+											console.log('File updated');
+										});
+								}
+							}).open();
+						});	
 				}
 				
 				break;
 			case 'remove': 
 				if (confirm('Are you sure?')) {
-					_storage.removeEntry(href_s).then(function(){
-						_storage.url = _storage.url;
-					});
+					_storage
+						.removeEntry(href_s)
+						.then(function(){
+							_storage.url = _storage.url;
+						});
 				}
 				break;
 			case 'info': 
-				_storage.getACLInfo(href_s).then(function(d){
-					// openRulesetPopup(d);
-					createRulesetPopup(d).open();
-				});
+				_storage
+					.getACLInfo(href_s)
+					.then(function(d){
+						createRulesetPopup(d).open();
+					});
 				break;
 			case 'download': 
 				let fname_s;
@@ -120,9 +127,11 @@ UITools.bindEvents(CONTROLS, {
 					fname_s = 'noname';
 				}
 
-				_storage.downloadBlob(href_s).then(function(blob){
-					UITools.downloadFile(fname_s, blob);
-				});
+				_storage
+					.downloadBlob(href_s)
+					.then(function(blob){
+						UITools.downloadFile(fname_s, blob);
+					});
 				break;
 			case 'link': 
 				UITools.pasteInBuffer(href_s);
@@ -134,13 +143,9 @@ UITools.bindEvents(CONTROLS, {
 	'reset navigationForm': function(e) {
 		e.preventDefault();
 
-		console.log('RESET');
-		console.dir(_storage);
-
 		if (_storage.prevUrl) {
 			_storage.url = _storage.prevUrl;
 		}
-		// _storage.url = CONTROLS.navigationUrl.value;
 	},
 	'click fileTableSortByModificationTime': function(e) {
 		_storage.sort(_storage.sortBy == 'timeUp' ? 'timeDown' : 'timeUp');
@@ -149,27 +154,26 @@ UITools.bindEvents(CONTROLS, {
 
 
 	'click btnCreateFolder': function(e) {
-		CONTROLS.dialogCreateFolder.setAttribute('open', true);
-		setTimeout(function() {
-			CONTROLS.dialogCreateFolderName.focus();
-		},100);
-		
+		createResourcePopup(async function(name_s, type_s) {
+			console.log('NN');
+			console.dir(arguments);
+
+			if (type_s == 'folder') {
+				await _storage
+					.createFolder(_storage.url, name_s);	
+			} else {
+				await _storage
+					.upload(_storage.url + name_s.replace(/\//g, ''), '');
+			}
+			// Reload page content
+			_storage.url = _storage.url;
+		}).open();
 	},
-	'submit dialogCreateFolderForm': async function(e) {
-		e.preventDefault();
-		CONTROLS.dialogCreateFolder.removeAttribute('open');
-		await _storage.createFolder(_storage.url, CONTROLS.dialogCreateFolderName.value);
-		_storage.url = _storage.url;
-	},
-	'reset dialogCreateFolderForm': function(e) {
-		if (e) e.preventDefault();
-		CONTROLS.dialogCreateFolderName.value = '';
-		CONTROLS.dialogCreateFolder.removeAttribute('open');
-	},
+	
+
 
 	'click btnShowInfo': async function(){
 		_storage.getACLInfo(_storage.url).then(function(d){
-			// openRulesetPopup(d);
 			createRulesetPopup(d).open();
 		});
 	},
@@ -215,16 +219,10 @@ _storage.bindEvents({
 
 	},
 	'change:prevUrl': function(model, url) {
-		// if (url) {
-		// 	CONTROLS.navigationBackBtn.removeAttribute('disabled');	
-		// } else {
-		// 	CONTROLS.navigationBackBtn.setAttribute('disabled', true);
-		// }
 		CONTROLS.navigationBackBtn.disabled = !url;
 	},
 	'change:nodeList': function(model, nodes){
 		UITools.emptyNode(CONTROLS.navigationTableBody);
-		// console.dir(nodes)
 
 		nodes.forEach((node, id) => {
 			if (node.type == parent) {
@@ -251,11 +249,17 @@ _storage.bindEvents({
 				<td colspan="4">&nbsp;</td>`);
 			CONTROLS.navigationTableBody.appendChild($tr);	
 		});	
+	},
+	'change:troubles': function (model, exc) {
+		if (exc instanceof StorageException) {
+			alert(exc);
+		}
 	}
 });
 
 _hash.on('url', function(m, url_s){
 	console.log('URL: %s', url_s);
+	// Attention: it is turned off because it brokes navigation by Back button 
 	// _storage.url = url_s;
 });
 _hash.init();
