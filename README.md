@@ -1,6 +1,6 @@
 # Solid file manager
 
-[run](https://nmalcev.github.io/soliddemo/) 
+[Run application](https://nmalcev.github.io/pod-explorer/) 
 
 ### Step by step
 
