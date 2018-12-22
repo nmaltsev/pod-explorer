@@ -2,11 +2,6 @@
 // https://www.w3.org/wiki/WebAccessControl
 // https://github.com/solid/web-access-control-spec
 
-// TODO 
-// acl:agentGroup  <https://alice.example.com/work-groups#Accounting>;
-// acl:agentGroup  <https://alice.example.com/work-groups#Management>.
-// [acl:accessTo <card>; acl:mode acl:Read; acl:agentClass <http://my.example.net/groups/friends#group>].
-
 const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 const WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
 const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
@@ -16,6 +11,7 @@ const ACL_ACCESS_MODES = {
 	read: WAC('Read'),
 	write: WAC('Write'),
 	control: WAC('Control'),
+	append: WAC('Append')
 };
 
 class ACLManager {
@@ -23,7 +19,7 @@ class ACLManager {
 		this.g = $rdf.graph(); 
 		this.webId_s = webId_s;
 		this.$webId = $rdf.sym(webId_s);
-		this.self_Namespace = $rdf.Namespace(this.$webId.site().value);
+		// this.self_Namespace = $rdf.Namespace(this.$webId.site().value);
 	}
 	addRule (ruleName_s) {
 		return new ACLRule(ruleName_s, this);
@@ -38,13 +34,14 @@ class ACLManager {
 
 		while (i-- > 0) {
 			ruleset = rulesets[i];
-			this
+			rule = this
 				.addRule(ruleset.id)
 				.setResources(ruleset.accessTo)
-				.accessMode(ruleset.mode)
-				.forUsers(ruleset.agent)
-				.forAgentClasses(ruleset.agentClass);
+				.accessMode(ruleset.mode);
 
+			if (ruleset.agent.length > 0) rule.forAgent(ruleset.agent, WAC('agent'));
+			if (ruleset.agentGroup.length > 0) rule.forAgent(ruleset.agentGroup, WAC('agentGroup'));
+			if (ruleset.agentClass.length > 0) rule.forAgent(ruleset.agentClass, WAC('agentClass'));
 		}
 	}
 }
@@ -53,7 +50,8 @@ class ACLRule {
 	constructor (ruleName_s, manager) {
 		// this._name = '#' + ruleName_s;
 		this._manager = manager;	
-		this._rule = $rdf.sym(this._manager.self_Namespace('#' + ruleName_s)),
+		// this._rule = $rdf.sym(this._manager.self_Namespace('#' + ruleName_s)),
+		this._rule = $rdf.sym(ruleName_s),
 
 		this._manager.g.add(
 			this._rule,
@@ -105,39 +103,63 @@ class ACLRule {
 		
 		return this;
 	}
-	forAgentClasses(agentClasses) {
-		let i = agentClasses.length;
+	
+	// forAgentClasses(agentClasses) {
+	// 	let i = agentClasses.length;
 
-		console.log('agentClasses')
-		console.dir(agentClasses)
-
-		while (i-- > 0) {
-			this._manager.g.add(
-				this._rule,
-				WAC("agentClass"), 
-				$rdf.sym(agentClasses[i])
-			);	
-		}
-		return this;
-	}
+	// 	while (i-- > 0) {
+	// 		this._manager.g.add(
+	// 			this._rule,
+	// 			WAC("agentClass"), 
+	// 			$rdf.sym(agentClasses[i])
+	// 		);	
+	// 	}
+	// 	return this;
+	// }
 
 	forMe() {
 		this._manager.g.add(
 			this._rule,
-			WAC("agent"), 
+			WAC('agent'), 
 			this._manager.$webId
 		);
 		
 		return this;
 	}
-	// 
-	forUsers(webIds) {
-		let i = webIds.length;
+	// forUsers(webIds) {
+	// 	let i = webIds.length;
+
+	// 	while(i-- > 0) {
+	// 		this._manager.g.add(
+	// 			this._rule,
+	// 			WAC("agent"), 
+	// 			$rdf.sym(webIds[i])
+	// 		);	
+	// 	}
+		
+	// 	return this;
+	// }
+	// forGroup(webIds) {
+	// 	let i = webIds.length;
+
+	// 	while(i-- > 0) {
+	// 		this._manager.g.add(
+	// 			this._rule,
+	// 			WAC('agentGroup'), 
+	// 			$rdf.sym(webIds[i])
+	// 		);	
+	// 	}
+		
+	// 	return this;
+	// }
+
+	forAgent(webIds, namespace) {
+			let i = webIds.length;
 
 		while(i-- > 0) {
 			this._manager.g.add(
 				this._rule,
-				WAC("agent"), 
+				namespace, 
 				$rdf.sym(webIds[i])
 			);	
 		}
@@ -160,6 +182,11 @@ class Ruleset {
 		) {
 			this.isPublic = true;
 		}
+		return this;
+	}
+	setGroup(list) {
+		this.agentGroup = list;	
+		return this;	
 	}
 }
 
@@ -168,9 +195,13 @@ class ACLParser {
 		this.g = $rdf.graph();
 		this.webId_s = webId_s;
 		this.$webId = $rdf.sym(webId_s);
-		this.self_Namespace = $rdf.Namespace(this.$webId.site().value);
+		// this.self_Namespace = $rdf.Namespace(this.$webId.site().value);
 
 		// $rdf.parse(data, store, baseUrl, contentType); 'text/turtle'
+
+		console.log('ACL parse');
+		console.dir(data);
+
 		$rdf.parse(data, this.g, this.$webId.site().value, 'text/n3');
 	}
 	_extractList(subject, ns, getValue) {
@@ -182,11 +213,20 @@ class ACLParser {
 		): null;
 	}
 	getRules() {
+		// let rulesSubGraphs = this.g.statementsMatching(
+		// 	null, 
+		// 	RDF('type'), 
+		// 	WAC('Authorization')
+		// );
 		let rulesSubGraphs = this.g.statementsMatching(
 			null, 
-			RDF('type'), 
-			WAC("Authorization")
+			null, 
+			WAC('Authorization')
 		);
+
+		console.log('[getRules()]');
+		console.dir(this.g);
+		window._graph = this.g;
 
 		let i = rulesSubGraphs && rulesSubGraphs.length;
 		let out = [];
@@ -194,7 +234,10 @@ class ACLParser {
 
 		while (i-- > 0) {
 			subject = rulesSubGraphs[i].subject;
-			ruleset = new Ruleset(subject.value.split('#')[1]);
+			console.log('Ruleset Subject')
+			console.dir(subject)
+			// ruleset = new Ruleset(subject.value.split('#')[1]);
+			ruleset = new Ruleset(subject.value);
 
 			console.log('MODES parsed');
 			this.g.statementsMatching(subject, WAC("mode"));
@@ -204,15 +247,15 @@ class ACLParser {
 			ruleset.defaultForNew = this._extractList(subject, WAC('defaultForNew'), true);
 			ruleset.agent = this._extractList(subject, WAC('agent'), true);
 			ruleset.setAgentClass(this._extractList(subject, WAC('agentClass'), true));
-
+			ruleset.setGroup(this._extractList(subject, WAC('agentGroup'), true))
 			out.push(ruleset);
 		}
 		return out;
 	}
 }
 
-function createSafeRuleset(uri_s, webId_s) {
-	let rule = new Ruleset('default');
+function createSafeRuleset(uri_s, webId_s, aclUrl_s) {
+	let rule = new Ruleset(aclUrl_s + '#default');
 
 	rule.accessTo = [uri_s];
 	rule.agent = [webId_s];

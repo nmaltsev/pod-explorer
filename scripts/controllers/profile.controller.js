@@ -2,7 +2,7 @@ import * as UITools from './common.js';
 import {Model, Hotel} from './model.js';
 import {Storage, StorageException} from './storage.js';
 
-const popupUri = 'pages/popup.html';
+const popupUri = '/pages/popup.html';
 
 
 const CONTROLS = UITools.findNodes();

@@ -1,4 +1,4 @@
-import * as UITools from './common.js';
+import * as UITools from './../utils/common.js';
 
 class Hotel {
 	constructor (name_s) {

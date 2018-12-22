@@ -1,5 +1,6 @@
-import * as UITools from './common.js';
+import * as UITools from './../utils/common.js';
 import {ACLManager, ACL_ACCESS_MODES, ACLParser, Ruleset, createSafeRuleset} from './acl_manager.js';
+import * as Parsers from './../utils/parsers.js';
 
 
 const RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
@@ -17,80 +18,6 @@ const STAT = $rdf.Namespace('http://www.w3.org/ns/posix/stat#')
 const TERMS = $rdf.Namespace('http://purl.org/dc/terms/')
 
 
-function parseLinkHeader(header) {
-   	var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
-	var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
-
-	var matches = header.match(linkexp);
-	var rels = new Object();
-	for (var i = 0; i < matches.length; i++) {
-		var split = matches[i].split('>');
-		var href = split[0].substring(1);
-		var ps = split[1];
-		var link = new Object();
-		link.href = href;
-		var s = ps.match(paramexp);
-		for (var j = 0; j < s.length; j++) {
-			var p = s[j];
-			var paramsplit = p.split('=');
-			var name = paramsplit[0];
-			link[name] = unquote(paramsplit[1]);
-		}
-
-		if (link.rel != undefined) {
-			rels[link.rel] = link;
-		}
-	}   
-    
-    return rels;
-}
-function unquote(value) {
-    if (value.charAt(0) == '"' && value.charAt(value.length - 1) == '"') return value.substring(1, value.length - 1);
-    return value;
-}
-// get the base name of a path (e.g. filename)
-// basename('/root/dir1/file') -> 'file'
-function basename(path_s) {
-	let path;
-    if (path_s.substring(path_s.length - 1) == '/') {
-        path = path_s.substring(0, path_s.length - 1);
-    }
-    else {
-    	path = path_s;
-    }
-
-    var a = path.split('/');
-    return a[a.length - 1];
-}
-function getParent(url_s) {
-	let list = url_s.split('/');
-	let pos = list.length;
-
-	if (pos > 3 && !list[pos -1] ) {pos--;}
-	if (pos > 3) {pos--;}
-	if (pos > 3 && !list[pos -1] ) {pos--;}
-	console.dir(list)	
-
-	return list.length > 4 ? list.slice(0, pos).join('/') + '/' : null;
-}
-
-// function getParent(url_s) {
-// 	let list = url_s.replace(/(?<!\:)\/+/g,'/').split('/');
-// 	let i = list.length;
-// 	let j = 0
-
-// 	console.dir(i);
-
-// 	if (list.length < 5) return null;
-
-// 	while(i-- > 3 && j < 1 ){
-// 		if (list[i]) j++;
-// 	}
-	
-// 	return list.slice(0, i+1).join('/') + '/';
-// }
-
-
 class StorageException {
 	constructor(code) {
 		this.code = code;
@@ -100,7 +27,8 @@ class StorageException {
 	}
 }
 StorageException.prototype.codeMap = {
-	100: 'Unvalid folder path'
+	100: 'Unvalid folder path',
+	200: 'File cannot be readed',
 }
 
 const Storage = UITools.$decorateWatchers([
@@ -116,14 +44,30 @@ const Storage = UITools.$decorateWatchers([
 		let store = $rdf.graph();
 		// Fetcher instance will store all the collected data!
 		this.fetcher = new $rdf.Fetcher(store);
+		this.updater = new $rdf.UpdateManager(store);
 	}
 	async _loadDir(uri_s) {
-		const uri = encodeURI(uri_s.replace(/\/?$/, '/'))
-		const store = $rdf.graph()
-		const fetcher = new $rdf.Fetcher(store)
+		const uri = encodeURI(uri_s.replace(/\/?$/, '/'));
+		const store = $rdf.graph();
+		const fetcher = new $rdf.Fetcher(store);
+		let response;
  
-		const response = await fetcher.load(uri);
-		this._linkHeaders = parseLinkHeader(response.headers.get('Link'));
+ 		try {
+ 			response = await fetcher.load(uri);
+ 		} catch (e) {
+ 			if (
+				e.status == 403 
+				|| e.status == 404
+			) {
+				alert(`Can't download "${uri_s}"`);
+				return [];
+			} else {
+				console.log(`Can't download "${uri_s}"`);
+				console.dir(response);	
+			}
+ 		}
+		
+		this._linkHeaders = Parsers.parseLinkHeader(response.headers.get('Link'));
 
 		// get list of all nodes in dir
 		const nodes = store.each($rdf.sym(uri), LDP('contains'));
@@ -139,27 +83,45 @@ const Storage = UITools.$decorateWatchers([
 		});
 	}
 	_getType(types) {
-		for (var i = 0; i < types.length; i++) {
-			if (this._MEDIA_TYPES.test(types[i].value)) {
-				return types[i].value
-				.replace(this._MEDIA_TYPES, '')
-				.replace(/#.*$/, '')
+		let i_n = types.length;
+		let resourceType_s = 'Resource';
+		let mediaType_s;
+		let type_s;
+
+		while (i_n--> 0) {
+			type_s = types[i_n].value; 
+			if (type_s.indexOf('http://www.w3.org/ns/ldp#Container') != -1) {
+				resourceType_s = 'Directory';
+			} else if (type_s.indexOf('http://www.w3.org/ns/iana/media-types/') != -1) {
+				mediaType_s = type_s.replace('http://www.w3.org/ns/iana/media-types/', '').replace(/#.*$/, '');
 			}
 		}
-		return 'directory';
+
+		return mediaType_s ? mediaType_s : resourceType_s;
 	}
 	async showFolder(uri_s) {
-		// this.url = uri_s;
+		// Turn off because RDFJSLIB v 0.19.1 doesn't support removing watcher ;)
+
+		// let upd = this.updater.addDownstreamChangeListener(uri_s, async () => {
+		// 	console.log('Reviews updated');
+		// 	await this.loadDir(uri_s);	
+		// });
+
+
+
+		// console.log('Upd');
+		// console.dir(upd);
+		await this.loadDir(uri_s);
+	}
+	async loadDir(uri_s) {
 		this.isNodeListLoading = true;
 		const list = this._sort(await this._loadDir(uri_s), this.sortBy);
-		const parent_s = getParent(uri_s);
-
-		console.log('URI: `%s`, parent `%s`', uri_s, parent_s);
+		const parent_s = Parsers.getParent(uri_s);
 
 		if (parent_s) {
 			// Add parent folder at first position 
 			list.unshift({
-				uri: getParent(uri_s),
+				uri: parent_s,
 				name: '...',
 				type: 'parent'
 			});
@@ -184,23 +146,34 @@ const Storage = UITools.$decorateWatchers([
 	}
 
 	async getContent(url_s) {
-		console.log('[getContent] `%s`', url_s);
 		let response = await solid.auth.fetch(url_s,{ 
 			method: 'GET' 
-		});
+		});	
+		console.log('[getContent] `%s`', url_s);
+		console.dir(response);
 		
-		let contentType= response.headers.get('Content-Type')
-		let text = await response.text();
+		if (response.status > 199 && response.status < 300) {
+			let contentType_s = response.headers.get('Content-Type')
+			let text_s = await response.text() || '';	
+
+			return {
+				text: text_s,
+				contentType: contentType_s
+			};
+		} else {
+			// inform about trouble
+			this.troubles = new StorageException(200);
+		}
+
+		
+		
 
 		// response.body.getReader().read().then((r) => {
 		// 	console.log('SRE %s', r.done);
 		// 	console.dir(r.value);
 		// });
 
-		return {
-			text,
-			contentType
-		};
+		
 	}
 
 	
@@ -240,6 +213,14 @@ const Storage = UITools.$decorateWatchers([
 
 		return blob;	
 	}
+
+	isDuplicateFileExist(fname_s) {
+		let dupliactes = this.nodeList.filter(function(node) {
+			return node.type != 'directory' && node.name == fname_s;
+		});
+
+		return dupliactes.length > 0;
+	}
 	async upload(url_s, body) {
 		return await solid.auth.fetch(url_s,{ 
 			method: 'PUT',
@@ -261,11 +242,14 @@ const Storage = UITools.$decorateWatchers([
 			}
 		);
 
-		const linkHeaders = parseLinkHeader(folderResponse.headers.get('Link'));
+		const linkHeaders = Parsers.parseLinkHeader(folderResponse.headers.get('Link'));
 		// linkHeaders.type.href values:
 		// file resource - http://www.w3.org/ns/ldp#Resource
 		// folder resource -http://www.w3.org/ns/ldp#BasicContainer
-		let aclUri_s = (linkHeaders.type.href == 'http://www.w3.org/ns/ldp#BasicContainer' ? folderUri : getParent(folderUri)) + linkHeaders.acl.href;
+		let aclUri_s = (linkHeaders.type.href == 'http://www.w3.org/ns/ldp#BasicContainer' ? 
+			folderUri : 
+			Parsers.getParent(folderUri)
+		) + linkHeaders.acl.href;
 
 		console.log('getACLInfo folderUri: %s', folderUri)
 		console.dir(linkHeaders)
@@ -287,7 +271,6 @@ const Storage = UITools.$decorateWatchers([
 
 			rulesets = aclParser.getRules();
 		} else { // There is no acl file and no rulesets
-			// rulesets = [createSafeRuleset(folderUri, this.webId)];
 			rulesets = [];
 		}
 
@@ -343,14 +326,29 @@ const Storage = UITools.$decorateWatchers([
 		);
 	}
 
+	async updateFileContent(url_s, requestBody, contentType) {
+		const response = await solid.auth.fetch(
+			url_s, 
+			{
+				method: 'PUT',
+				headers: { 
+					'Content-Type': contentType,
+				},
+				credentials: 'include',
+				body: requestBody
+			}
+		);
+	}
+
+
 	async setACL(aclUri_s, folderUri) {
 		let acl = new ACLManager(this.webId);
 
-		acl.addRule('owner')
+		acl.addRule(aclUri_s + '#owner')
 			.setResource(folderUri)
 			.forMe()
 			.accessMode(ACL_ACCESS_MODES.read, ACL_ACCESS_MODES.write, ACL_ACCESS_MODES.control);
-		acl.addRule('public')
+		acl.addRule(aclUri_s + '#public')
 			.setResource(folderUri)
 			.forNotAuthorized()
 			.accessMode(ACL_ACCESS_MODES.read);
@@ -372,22 +370,6 @@ const Storage = UITools.$decorateWatchers([
 		);
 	}
 
-	test() {
-		let folderUri = 'https://nmaltsev.inrupt.net//test4/';
-		let acl = new ACLManager(this.webId);
-
-		acl.addRule('owner')
-			.setResource(folderUri)
-			.forMe()
-			.accessMode(ACL_ACCESS_MODES.read, ACL_ACCESS_MODES.write, ACL_ACCESS_MODES.control);
-		acl.addRule('public')
-			.setResource(folderUri)
-			.forNotAuthorized()
-			.accessMode(ACL_ACCESS_MODES.read);
-
-		return acl;		
-	}
-
 	getMetaInformation(resourceUrl) {
 		// TODO
 		solid.auth.fetch(
@@ -403,7 +385,6 @@ const Storage = UITools.$decorateWatchers([
 	}
 });
 
-Storage.prototype._MEDIA_TYPES = /^http:\/\/www\.w3\.org\/ns\/iana\/media-types\//;
 Storage.prototype._sortCallbacks = {
 	timeUp: function(n1, n2){ return n1.dateModified < n2.dateModified ? 1 : n1.dateModified > n2.dateModified ? -1 : 0;},
 	timeDown: function(n1, n2){ return n1.dateModified < n2.dateModified ? -1 : n1.dateModified > n2.dateModified ? 1 : 0;},

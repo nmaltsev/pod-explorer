@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>File manager</title>
+	<title>POD Explorer</title>
 	<link rel="stylesheet" type="text/css" href="styles/main.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!--  -->
@@ -16,13 +16,17 @@
 	<div data-co="login-block" class="layout-center-column" style="display: none;">
 		<div class="layout-center-column_main">
 			<p>You are not logged in.</p>
-			<button data-co="login-btn" class="dwc_btn">login</button>
+			<button data-co="login-btn" class="dwc_btn mb4">login</button>
+
+			<p>Welcome in <b>POD Explorer</b>!</p>
+			<p>POD Explorer is file manager for <a href="https://solid.mit.edu/" target="_blank">SOLID</a></p>
+			<p>Follow the project on <a href="https://github.com/nmalcev/pod-explorer" target="_blank">Github</a></p>
 		</div>
 	</div>
 	<div data-co="logout-block" style="display: none;"> 
-		<div class="layout-line mb4">
+		<div class="app-header layout-line mb4">
 			<div class="layout-line_cell-full ta-r">
-				<span class="article-5">You are logged in as <span data-co="user-label"></span>.</span>
+				<span class="article-5 mr1">You are logged in as <b data-co="user-label"></b>.</span>
 			</div>
 			<div class="layout-line_cell-auto">
 				 <button data-co="logout-btn" class="dwc_btn">Log out</button>
@@ -33,13 +37,12 @@
 			<form class="layout-line profile-select-form mb1" data-co="navigation-form">
 				<button class="layout-line_cell-auto basebtn __invert-blue" type="reset" data-co="navigation-back-btn">Back</button>
   				<div class="layout-line_cell-full profile-select-form_login-input">
-  					<input data-co="navigation-url" class="basefield">	
+  					<input data-co="navigation-url" class="basefield __invert-blue">	
   				</div>
 	  			<button class="layout-line_cell-auto basebtn __invert-blue" type="submit">Go</button>	
 			</form>
 			<div class="btnline mb1">
-				<button class="basebtn __gray" data-co="btn-create-folder">Create folder</button>
-				<!-- <button class="basebtn __gray" data-co="btn-upload">Upload files</button> -->
+				<button class="basebtn __gray" data-co="btn-create-folder">Create resource</button>
 				<button class="basebtn __gray" data-co="btn-show-info">Folder info</button>
 				<label class="basebtn __gray">
 					<input type="file" data-co="btn-upload" class="sc_invisible"><span>Upload files</span>
@@ -59,42 +62,11 @@
 					<tbody data-co="navigation-table-body"></tbody>
 				</table>
 			</div>
-
-			<!-- Creation folder -->
-			<dialog data-co="dialog-create-folder" class="m3-dialog">
-				<div class="m3-dialog-scroller">
-				<form data-co="dialog-create-folder-form" class="m3-dialog-inner">
-					<label class="bookmark-form_row">
-						<div>Folder name:</div>
-						<input class="basefield" type="text" data-co="dialog-create-folder-name" required/>
-					</label>
-					<div class="btnline">
-						<button type="reset" class="basebtn __gray">Cancel</button>
-						<button type="submit" class="basebtn __blue">Create</button>
-					</div>
-				</form>
-				</div>
-			</dialog>
-			<!-- Configure ACL -->
-			<dialog data-co="dialog-configure" class="m3-dialog">
-				<form data-co="dialog-configure-form" class="m3-dialog-inner">
-					<div class="" data-co="ruleset-list"></div>
-					<!-- <select data-co="select-visibility-mode">
-						<option value="public">Public</option>
-						<option value="friends">Friends</option>
-						<option value="private">Private</option>
-					</select> -->
-					<div class="btnline">
-						<button type="reset" class="basebtn __gray">Close</button>
-						<button type="submit" class="basebtn __blue">Update</button>
-					</div>
-				</form>
-			</dialog>
 		</main>
 	</div>
 	<div id="node-heap"></div>
 	<script src="libs/solid-auth-client.bundle.js"></script>
 	<script src="libs/rdflib.min.js"></script>
-	<script src="scripts/index.controller.js" type="module"></script>
+	<script src="scripts/controllers/index.controller.js" type="module"></script>
 </body>
 </html>
