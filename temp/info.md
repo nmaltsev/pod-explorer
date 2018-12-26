@@ -14,7 +14,10 @@ ACL
   https://github.com/solid/web-access-control-spec
 Grand permissions to group
   http://solid.github.io/web-access-control-spec/#groups-of-agents
-
+Sites about SOLID & POD
+  https://solidpodit.com/
+Lock by your self (my problem)
+  https://forum.solidproject.org/t/resetting-permissions-on-my-pod/151
 
 TODO
   1. https://solid.mit.edu/
@@ -26,6 +29,13 @@ TODO
 INFO about solid API
   https://forum.solidproject.org/t/question-about-retrieving-data/569/6
   https://forum.solidproject.org/t/my-first-app-adding-resources/275/10
+  https://github.com/scenaristeur/spoggy-graph/blob/master/spoggy-solid.js
+Linked data notifications
+  https://www.w3.org/TR/ldn/
+Problems with authorization
+  https://forum.solidproject.org/t/symptom-access-to-main-index-page-denied-for-owners-webid-when-setting-up-a-solid-server-on-a-windows-machine/112
+Release NSS 5.0
+  https://github.com/orgs/solid/projects/1#card-14842941
 
 ======================================
 solid file client   
@@ -269,6 +279,8 @@ Good practise is left decription of usage of file in .mata file of each resource
 # SOLID ALTERNATIVES
 https://unhosted.org/ https://5apps.com/
   read more about them https://forum.solidproject.org/t/unhosted-web-apps/766
+https://zeronet.io/
+https://forum.solidproject.org/t/distributed-solid-based-on-ipfs-safe-network-etc/79
 
 ## where to store application data. And how
 There are no decision
@@ -276,11 +288,21 @@ There are no decision
   https://github.com/solid/solid/blob/master/proposals/data-discovery.md
     It's only proposals!
 
+# About data of application and solid
+https://forum.solidproject.org/t/how-exactly-does-solid-decouple-data-and-applications/100
+  I agree, I think Solid reduces the power of big companies and the Internet monopolies, but it doesn’t secure users’ privacy. It reduces exposure to surveillance significantly, but unfortunately a little leakage here and there is what does most of the damage.
+  For me the big wins of Solid are adding value to your data, and all data, and decoupling applications from owning your data, so you can easily move from one application to another.
+  Those are very powerful features, and why I’m such a fan. But I think we can go further, and improve privacy and security much more, if we can remove the vulnerabilities that servers create, and the inevitable centralisation that will come with ‘Solid as a service’.
 
 ### TMBL is working under
 1. Data Transfer Project for Importing Facebook, Google, Microsoft, and Twitter Data into Solid
     https://forum.solidproject.org/t/data-transfer-project-for-importing-facebook-google-microsoft-and-twitter-data-into-solid/633/2
     https://github.com/solid/solid-takeout-import
+2. https://forum.solidproject.org/t/changes-to-solid-data-browser/249/9
+
+### POD and copyright
+  https://forum.solidproject.org/t/illegal-content-copyrighted-material-and-so-on/176
+
 
 ==============================================
 

@@ -29,6 +29,7 @@ class StorageException {
 StorageException.prototype.codeMap = {
 	100: 'Unvalid folder path',
 	200: 'File cannot be readed',
+	403: 'Access denied',
 }
 
 const Storage = UITools.$decorateWatchers([
@@ -160,6 +161,8 @@ const Storage = UITools.$decorateWatchers([
 				text: text_s,
 				contentType: contentType_s
 			};
+		} else if (response.status == 403) {
+			this.troubles = new StorageException(403);
 		} else {
 			// inform about trouble
 			this.troubles = new StorageException(200);
@@ -185,6 +188,7 @@ const Storage = UITools.$decorateWatchers([
 			this.troubles = e;
 		}
 	}
+
 	async createFolder(parentUrl, folderName) {
 		const response = await solid.auth.fetch(
 			parentUrl, 
@@ -222,10 +226,16 @@ const Storage = UITools.$decorateWatchers([
 		return dupliactes.length > 0;
 	}
 	async upload(url_s, body) {
-		return await solid.auth.fetch(url_s,{ 
+		let response = await solid.auth.fetch(url_s,{ 
 			method: 'PUT',
 			body 
 		});
+
+		if (response.status == 403) {
+			this.troubles = new StorageException(403);
+		}
+
+		return response;
 	}
 
 	//-------------------------------------------------
@@ -257,7 +267,9 @@ const Storage = UITools.$decorateWatchers([
 		let aclResponse = await this._downloadACLFile(aclUri_s);
 
 		if (aclResponse.status == 403) {
-			// throw new Exception('forbidden');
+			// inform about trouble
+			this.troubles = new StorageException(403);
+			return;
 		}
 		// let aclResponse = await this._downloadACLFile(getParent(folderUri) + linkHeaders.acl.href);
 		let text_s = await aclResponse.text();
@@ -274,15 +286,11 @@ const Storage = UITools.$decorateWatchers([
 			rulesets = [];
 		}
 
-		
-
 		return {
 			rulesets,
 			aclUri: aclUri_s,
 			uri: folderUri			
 		};
-
-		// await this.setACL(aclUri_s, folderUri); 
 	}
 
 
